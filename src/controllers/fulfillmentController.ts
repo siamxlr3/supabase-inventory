@@ -51,6 +51,38 @@ export class FulfillmentController {
     }
   }
 
+  static async getFulfillmentOrders(filters: any) {
+    const startTime = Date.now();
+    try {
+      const { page = 1, per_page = 10, status = 'open' } = filters;
+
+      let query = supabase
+        .from('fulfillment_orders')
+        .select('*, order:orders(*, line_items:order_line_items(*), fulfillments:fulfillments(*)), location:locations(*)', { count: 'exact' });
+
+      if (status !== 'all') query = query.eq('status', status);
+
+      const from = (parseInt(page) - 1) * parseInt(per_page);
+      const to = from + parseInt(per_page) - 1;
+      query = query.range(from, to).order('created_at', { ascending: false });
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      const duration = Date.now() - startTime;
+      if (duration > 500) logger.warn(`Slow query: getFulfillmentOrders took ${duration}ms`);
+
+      return sendSuccess('Fulfillment orders fetched successfully', data, {
+        total: count || 0,
+        page: parseInt(page),
+        per_page: parseInt(per_page),
+        total_pages: Math.ceil((count || 0) / parseInt(per_page)),
+      });
+    } catch (error: any) {
+      return sendError(error.message || 'Failed to fetch fulfillment orders');
+    }
+  }
+
   static async createFulfillment(body: CreateFulfillmentDTO) {
     try {
       const validatedData = createFulfillmentSchema.parse(body);
@@ -92,40 +124,51 @@ export class FulfillmentController {
             quantity: item.quantity,
           });
 
-        // Decrement Committed Qty on Inventory Level
-        if (orderLineItem.variant_id && order.location_id) {
-          const { data: invItem } = await supabase
-            .from('inventory_items')
-            .select('id')
-            .eq('variant_id', orderLineItem.variant_id)
-            .single();
+        // Update Fulfillable Quantity on Order Line Item
+        await supabase
+          .from('order_line_items')
+          .update({ 
+            fulfillable_quantity: Math.max(0, orderLineItem.fulfillable_quantity - item.quantity) 
+          })
+          .eq('id', item.order_line_item_id);
 
-          if (invItem) {
-            const { data: invLevel } = await supabase
-              .from('inventory_levels')
-              .select('id, committed')
-              .eq('inventory_item_id', invItem.id)
-              .eq('location_id', order.location_id)
-              .single();
+        // Decrement On Hand and Committed Qty on Inventory Level
+        if (orderLineItem.inventory_item_id) {
+            const locId = orderLineItem.location_id || order.location_id;
+            const { data: invLevel, error: levelError } = await supabase
+                .from('inventory_levels')
+                .select('id, on_hand, committed')
+                .eq('inventory_item_id', orderLineItem.inventory_item_id)
+                .eq('location_id', locId)
+                .single();
 
             if (invLevel) {
-              await supabase
-                .from('inventory_levels')
-                .update({ committed: Math.max(0, invLevel.committed - item.quantity) })
-                .eq('id', invLevel.id);
+                await supabase
+                    .from('inventory_levels')
+                    .update({ 
+                        on_hand: Math.max(0, invLevel.on_hand - item.quantity),
+                        committed: Math.max(0, invLevel.committed - item.quantity) 
+                    })
+                    .eq('id', invLevel.id);
+                
+                // Record Adjustment
+                await supabase
+                    .from('inventory_adjustments')
+                    .insert({
+                        inventory_item_id: orderLineItem.inventory_item_id,
+                        location_id: locId,
+                        delta: -item.quantity,
+                        reason: 'sale'
+                    });
             }
-          }
         }
       }
 
       // 4. Update Order Fulfillment Status
-      // Calculate total fulfilled qty across all fulfillments for this order
       const { data: allFills } = await supabase
         .from('fulfillment_line_items')
-        .select('quantity, order_line_item_id')
-        .in('fulfillment_id', (
-          await supabase.from('fulfillments').select('id').eq('order_id', order_id)
-        ).data?.map(f => f.id) || []);
+        .select('quantity, order_line_item_id, fulfillments!inner(order_id)')
+        .eq('fulfillments.order_id', order_id);
 
       const fulfilledMap: Record<string, number> = {};
       allFills?.forEach(f => {

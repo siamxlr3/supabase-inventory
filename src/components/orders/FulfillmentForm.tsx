@@ -36,7 +36,7 @@ export const FulfillmentForm: React.FC<FulfillmentFormProps> = ({ order, onClose
 
   // Track quantities to fulfill for each line item
   const [itemsToFulfill, setItemsToFulfill] = useState<Record<string, number>>(
-    order.line_items?.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity }), {}) || {}
+    order.line_items?.reduce((acc, item) => ({ ...acc, [item.id]: item.fulfillable_quantity || 0 }), {}) || {}
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,16 +121,18 @@ export const FulfillmentForm: React.FC<FulfillmentFormProps> = ({ order, onClose
               <div key={item.id} className="p-4 flex items-center justify-between bg-white">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{item.title}</p>
-                  <p className="text-[10px] text-gray-400 font-mono italic">Order Qty: {item.quantity}</p>
+                  <p className="text-[10px] text-gray-400 font-medium">
+                    <span className="text-indigo-600 font-bold">{item.fulfillable_quantity}</span> of {item.quantity} remaining
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold text-gray-400">Ship:</span>
                   <input 
                     type="number"
                     min="0"
-                    max={item.quantity}
+                    max={item.fulfillable_quantity}
                     value={itemsToFulfill[item.id] || 0}
-                    onChange={(e) => setItemsToFulfill({ ...itemsToFulfill, [item.id]: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setItemsToFulfill({ ...itemsToFulfill, [item.id]: Math.min(item.fulfillable_quantity, parseInt(e.target.value) || 0) })}
                     className="w-16 h-8 text-center text-xs font-bold border border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none"
                   />
                 </div>

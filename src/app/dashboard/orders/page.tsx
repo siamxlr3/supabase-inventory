@@ -49,6 +49,8 @@ export default function OrdersPage() {
   const [financialStatus, setFinancialStatus] = useState<FinancialStatus | 'all'>('all');
   const [fulfillmentStatus, setFulfillmentStatus] = useState<FulfillmentStatus | 'all'>('all');
   const [page, setPage] = useState(1);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const debouncedSearch = useDebounce(search, 500);
 
   const { data: response, isLoading, isFetching, refetch } = useGetOrdersQuery({
@@ -56,6 +58,8 @@ export default function OrdersPage() {
     search: debouncedSearch,
     financial_status: financialStatus === 'all' ? undefined : financialStatus,
     fulfillment_status: fulfillmentStatus === 'all' ? undefined : fulfillmentStatus,
+    from_date: fromDate,
+    to_date: toDate
   });
 
   const [deleteOrder] = useDeleteOrderMutation();
@@ -275,9 +279,28 @@ export default function OrdersPage() {
                 <option value="unfulfilled">Unfulfilled</option>
                 <option value="partially_fulfilled">Partial</option>
               </select>
+              <div className="flex items-center gap-2 ml-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">From</span>
+                  <input 
+                      type="date" 
+                      value={fromDate}
+                      onChange={(e) => setFromDate(e.target.value)}
+                      className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-medium focus:border-indigo-500 focus:outline-none"
+                  />
+              </div>
+              <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">To</span>
+                  <input 
+                      type="date" 
+                      value={toDate}
+                      onChange={(e) => setToDate(e.target.value)}
+                      className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-medium focus:border-indigo-500 focus:outline-none"
+                  />
+              </div>
+              <Button variant="outline" size="sm" onClick={() => { setFromDate(''); setToDate(''); }} className="text-gray-400">Clear</Button>
             </div>
           </div>
-          <Button variant="outline" size="sm" leftIcon={<Calendar className="h-4 w-4" />}>Date Range</Button>
+          <Button variant="outline" size="sm" leftIcon={<Filter className="h-4 w-4" />}>Advanced</Button>
         </div>
 
         {/* Table Content */}

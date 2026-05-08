@@ -1,64 +1,122 @@
 'use client';
 
-import React from 'react';
-import { PageHeader, DataTable, Button, StatusBadge, StatsCard } from '@/components/ui';
-import { Plus, Download, FileText, Clock, CheckSquare, Truck } from 'lucide-react';
-import { Dropdown } from '@/components/ui/Dropdown';
+import React, { useState } from 'react';
+import { PageHeader, Button, Card } from '@/components/ui';
+import { 
+  PlusCircle, 
+  ShoppingCart, 
+  TrendingUp, 
+  Truck,
+  PackageCheck,
+  Package
+} from 'lucide-react';
 import Link from 'next/link';
-
-const purchaseOrders = [
-  { id: 'PO-2024-001', supplier: 'Logitech', date: '2025-05-06', amount: '$4,250.00', status: 'pending', expectedDate: '2025-05-15' },
-  { id: 'PO-2024-002', supplier: 'Anker', date: '2025-05-04', amount: '$1,890.00', status: 'approved', expectedDate: '2025-05-12' },
-  { id: 'PO-2024-003', supplier: 'Satechi', date: '2025-05-02', amount: '$3,400.00', status: 'ordered', expectedDate: '2025-05-10' },
-  { id: 'PO-2024-004', supplier: 'Keychron', date: '2025-04-28', amount: '$2,100.00', status: 'received', expectedDate: '2025-05-02' },
-  { id: 'PO-2024-005', supplier: 'BenQ', date: '2025-04-25', amount: '$12,500.00', status: 'partial', expectedDate: '2025-05-05' },
-];
+import { useGetPurchaseOrdersQuery, useDeletePurchaseOrderMutation } from '@/store/api/purchaseOrderApi';
+import { POTable } from '@/components/purchase-orders/POTable';
+import { POFilters } from '@/components/purchase-orders/POFilters';
+import { useDebounce } from '@/hooks/useDebounce';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 export default function PurchaseOrdersPage() {
-  const columns = [
-    { key: 'id', header: 'PO Number', cell: (row: typeof purchaseOrders[0]) => <span className="font-mono font-medium text-indigo-600">{row.id}</span> },
-    { key: 'supplier', header: 'Supplier', cell: (row: typeof purchaseOrders[0]) => <span className="font-medium">{row.supplier}</span> },
-    { key: 'date', header: 'Created Date', cell: (row: typeof purchaseOrders[0]) => <span className="text-sm text-gray-500">{row.date}</span> },
-    { key: 'expectedDate', header: 'Expected Date', cell: (row: typeof purchaseOrders[0]) => <span className="text-sm text-gray-500">{row.expectedDate}</span> },
-    { key: 'amount', header: 'Total Value', cell: (row: typeof purchaseOrders[0]) => <span className="font-bold text-gray-900">{row.amount}</span> },
-    { key: 'status', header: 'Status', cell: (row: typeof purchaseOrders[0]) => <StatusBadge status={row.status} /> },
-    {
-      key: 'actions', header: '', className: 'w-12',
-      cell: () => (
-        <Dropdown items={[
-          { label: 'View Details', icon: <FileText className="h-4 w-4" /> },
-          { label: 'Receive Items', icon: <CheckSquare className="h-4 w-4" /> },
-          { divider: true, label: '' },
-          { label: 'Cancel PO', icon: <Plus className="h-4 w-4" />, danger: true },
-        ]} />
-      ),
-    },
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 500);
+
+  const { data: response, isLoading, isFetching } = useGetPurchaseOrdersQuery({
+    page,
+    search: debouncedSearch,
+    status: status === 'all' ? undefined : status as any,
+    from_date: fromDate,
+    to_date: toDate
+  });
+
+  const [deleteOrder] = useDeletePurchaseOrderMutation();
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this draft PO?')) {
+      try {
+        await deleteOrder(id).unwrap();
+        toast.success('Purchase order deleted');
+      } catch (err) {
+        toast.error('Failed to delete order');
+      }
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setStatus('all');
+    setFromDate('');
+    setToDate('');
+    setPage(1);
+  };
+
+  const stats = [
+    { label: 'Total POs', value: response?.meta?.total || 0, icon: ShoppingCart, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Draft', value: response?.data?.filter(o => o.status === 'draft').length || 0, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Received', value: response?.data?.filter(o => o.status === 'received').length || 0, icon: PackageCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   ];
 
   return (
-    <>
-      <PageHeader
-        title="Purchase Orders"
-        description="Manage stock procurement and supplier orders"
-        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Procurement' }, { label: 'Purchase Orders' }]}
+    <div className="space-y-8 pb-12">
+      <PageHeader 
+        title="Purchase Orders" 
+        description="Manage procurement, track incoming shipments, and receive warehouse stock."
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Purchase Orders' }
+        ]}
         actions={
-          <>
-            <Button variant="outline" size="sm" leftIcon={<Download className="h-4 w-4" />}>Export</Button>
-            <Link href="/dashboard/purchase-orders/create">
-              <Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>Create PO</Button>
-            </Link>
-          </>
+          <Link href="/dashboard/purchase-orders/add">
+            <Button 
+              className="rounded-2xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all"
+              leftIcon={<PlusCircle className="h-4 w-4" />}
+            >
+              New Purchase Order
+            </Button>
+          </Link>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatsCard title="Total Spent (MTD)" value="$28,450" change="+15%" changeType="negative" icon={<FileText className="h-5 w-5 text-indigo-600" />} iconBg="bg-indigo-50" />
-        <StatsCard title="Pending Approval" value="3" change="Value: $5,200" changeType="neutral" icon={<Clock className="h-5 w-5 text-amber-600" />} iconBg="bg-amber-50" />
-        <StatsCard title="In Transit" value="2" change="Expected: Today" changeType="positive" icon={<Truck className="h-5 w-5 text-blue-600" />} iconBg="bg-blue-50" />
-        <StatsCard title="Received (MTD)" value="12" change="Value: $42,100" changeType="positive" icon={<CheckSquare className="h-5 w-5 text-emerald-600" />} iconBg="bg-emerald-50" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="p-6 border-none shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+              <div className={`h-12 w-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
+                <stat.icon className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : stat.value}</p>
+              </div>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
-      <DataTable columns={columns} data={purchaseOrders} searchPlaceholder="Search PO or supplier..." />
-    </>
+      <POFilters 
+        search={search} setSearch={setSearch}
+        status={status} setStatus={setStatus}
+        fromDate={fromDate} setFromDate={setFromDate}
+        toDate={toDate} setToDate={setToDate}
+        onClear={handleClearFilters}
+      />
+
+      <POTable 
+        orders={response?.data || []}
+        isLoading={isLoading || isFetching}
+        onDelete={handleDelete}
+      />
+    </div>
   );
 }

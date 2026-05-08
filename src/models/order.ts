@@ -27,12 +27,16 @@ export interface Order {
 export interface OrderLineItem {
   id: string;
   order_id: string;
-  variant_id?: string;
+  product_variant_id: string;
+  inventory_item_id?: string;
+  location_id?: string;
   title: string;
   quantity: number;
+  fulfillable_quantity: number;
   price: number;
   total_discount: number;
   tax_price: number;
+  requires_shipping: boolean;
   sku?: string;
   created_at: string;
   updated_at: string;
@@ -47,10 +51,14 @@ export interface CreateOrderDTO {
   financial_status?: FinancialStatus;
   currency?: string;
   line_items: {
-    variant_id: string;
+    product_variant_id: string;
+    inventory_item_id?: string;
+    location_id?: string;
     quantity: number;
     price: number;
     title: string;
+    total_discount?: number;
+    requires_shipping?: boolean;
     sku?: string;
   }[];
 }

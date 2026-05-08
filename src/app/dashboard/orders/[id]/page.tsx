@@ -33,7 +33,6 @@ import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FulfillmentForm } from '@/components/orders/FulfillmentForm';
 import { FinancialStatus } from '@/models/order';
 
 export default function OrderDetailsPage() {
@@ -124,29 +123,23 @@ export default function OrderDetailsPage() {
                 {isConfirming ? 'Processing...' : 'Confirm Order'}
               </Button>
             )}
-            {order.financial_status !== 'voided' && (
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleCancel} 
-                    disabled={isCancelling} 
-                    className="text-amber-600 border-amber-100 hover:bg-amber-50"
-                    leftIcon={isCancelling ? <Loader size="sm" /> : <X className="h-4 w-4" />}
-                >
-                    Cancel Order
-                </Button>
+            {!order.processed_at && (
+              <>
+                {order.financial_status !== 'voided' && (
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleCancel} 
+                        disabled={isCancelling} 
+                        className="text-amber-600 border-amber-100 hover:bg-amber-50"
+                        leftIcon={isCancelling ? <Loader size="sm" /> : <X className="h-4 w-4" />}
+                    >
+                        Cancel Order
+                    </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleDelete} disabled={isDeleting} className="text-red-600 border-red-100 hover:bg-red-50">Delete</Button>
+              </>
             )}
-            {order.processed_at && (
-                <Button 
-                    size="sm" 
-                    onClick={() => setShowFulfillmentForm(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white border-none"
-                    leftIcon={<Truck className="h-4 w-4" />}
-                >
-                    {order.fulfillment_status === 'fulfilled' ? 'Add Shipment' : 'Mark as Fulfilled'}
-                </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={handleDelete} disabled={isDeleting} className="text-red-600 border-red-100 hover:bg-red-50">Delete</Button>
           </>
         }
       />
@@ -368,14 +361,6 @@ export default function OrderDetailsPage() {
           </div>
         </div>
       </div>
-
-      <AnimatePresence>
-        {showFulfillmentForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-            <FulfillmentForm order={order} onClose={() => setShowFulfillmentForm(false)} />
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

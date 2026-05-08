@@ -1,55 +1,150 @@
 'use client';
 
-import React from 'react';
-import { PageHeader, DataTable, Button, Badge } from '@/components/ui';
-import { Plus, Eye, Edit, Trash2, Phone, Mail } from 'lucide-react';
-import { Dropdown } from '@/components/ui/Dropdown';
-
-const suppliers = [
-  { id: 1, name: 'Logitech', contact: 'Alice Wong', email: 'alice@logitech.com', phone: '+1 555-1234', category: 'Electronics', status: 'active' },
-  { id: 2, name: 'Anker', contact: 'Bob Chen', email: 'bob@anker.com', phone: '+1 555-5678', category: 'Accessories', status: 'active' },
-  { id: 3, name: 'Satechi', contact: 'Cathy Smith', email: 'cathy@satechi.com', phone: '+1 555-9012', category: 'Accessories', status: 'active' },
-  { id: 4, name: 'Keychron', contact: 'David Jones', email: 'david@keychron.com', phone: '+1 555-3456', category: 'Electronics', status: 'inactive' },
-  { id: 5, name: 'BenQ', contact: 'Eve Miller', email: 'eve@benq.com', phone: '+1 555-7890', category: 'Lighting', status: 'active' },
-];
+import React, { useState } from 'react';
+import { 
+  PageHeader, 
+  Button, 
+  Modal,
+  Card
+} from '@/components/ui';
+import { 
+  Plus, 
+  Building2, 
+  Users, 
+  Activity, 
+  Globe,
+  PlusCircle
+} from 'lucide-react';
+import Link from 'next/link';
+import { 
+  useGetSuppliersQuery, 
+  useDeleteSupplierMutation 
+} from '@/store/api/supplierApi';
+import { Supplier } from '@/models/supplier';
+import { SupplierTable } from '@/components/suppliers/SupplierTable';
+import { SupplierForm } from '@/components/suppliers/SupplierForm';
+import { SupplierFilters } from '@/components/suppliers/SupplierFilters';
+import { useDebounce } from '@/hooks/useDebounce';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 export default function SuppliersPage() {
-  const columns = [
-    { key: 'name', header: 'Supplier', cell: (row: typeof suppliers[0]) => <span className="font-medium text-gray-900">{row.name}</span> },
-    { key: 'contact', header: 'Primary Contact', cell: (row: typeof suppliers[0]) => <span className="text-sm">{row.contact}</span> },
-    {
-      key: 'contact_info', header: 'Contact Info',
-      cell: (row: typeof suppliers[0]) => (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500"><Mail className="h-3 w-3" /> {row.email}</div>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500"><Phone className="h-3 w-3" /> {row.phone}</div>
-        </div>
-      ),
-    },
-    { key: 'category', header: 'Category', cell: (row: typeof suppliers[0]) => <Badge variant="outline">{row.category}</Badge> },
-    { key: 'status', header: 'Status', cell: (row: typeof suppliers[0]) => <Badge variant={row.status === 'active' ? 'success' : 'default'}>{row.status.toUpperCase()}</Badge> },
-    {
-      key: 'actions', header: '', className: 'w-12',
-      cell: () => (
-        <Dropdown items={[
-          { label: 'View Profile', icon: <Eye className="h-4 w-4" /> },
-          { label: 'Edit Supplier', icon: <Edit className="h-4 w-4" /> },
-          { divider: true, label: '' },
-          { label: 'Delete', icon: <Trash2 className="h-4 w-4" />, danger: true },
-        ]} />
-      ),
-    },
+  // State for Filters
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Modal State
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(undefined);
+
+  // API Queries
+  const { data: response, isLoading, isFetching } = useGetSuppliersQuery({
+    page,
+    search: debouncedSearch,
+    status: status === 'all' ? undefined : status as any,
+    from_date: fromDate,
+    to_date: toDate
+  });
+
+  const [deleteSupplier] = useDeleteSupplierMutation();
+
+  const handleEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this supplier?')) {
+      try {
+        await deleteSupplier(id).unwrap();
+        toast.success('Supplier deleted successfully');
+      } catch (err) {
+        toast.error('Failed to delete supplier');
+      }
+    }
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingSupplier(undefined);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setStatus('all');
+    setFromDate('');
+    setToDate('');
+    setPage(1);
+  };
+
+  const stats = [
+    { label: 'Total Suppliers', value: response?.meta?.total || 0, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Active', value: response?.data?.filter(s => s.status === 'active').length || 0, icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Currencies', value: new Set(response?.data?.map(s => s.currency_code)).size || 0, icon: Globe, color: 'text-amber-600', bg: 'bg-amber-50' },
   ];
 
   return (
-    <>
-      <PageHeader
-        title="Suppliers"
-        description="Manage your vendor and supplier relationships"
-        breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Procurement' }, { label: 'Suppliers' }]}
-        actions={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>Add Supplier</Button>}
+    <div className="space-y-8 pb-12">
+      <PageHeader 
+        title="Supplier Management" 
+        description="Monitor and manage your vendor relationships and procurement terms."
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Suppliers' }
+        ]}
+        actions={
+          <Link href="/dashboard/suppliers/add">
+            <Button 
+              className="rounded-2xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all"
+              leftIcon={<PlusCircle className="h-4 w-4" />}
+            >
+              New Supplier
+            </Button>
+          </Link>
+        }
       />
-      <DataTable columns={columns} data={suppliers} searchPlaceholder="Search suppliers..." />
-    </>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="p-6 border-none shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+              <div className={`h-12 w-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
+                <stat.icon className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : stat.value}</p>
+              </div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Filters Section */}
+      <SupplierFilters 
+        search={search} setSearch={setSearch}
+        status={status} setStatus={setStatus}
+        fromDate={fromDate} setFromDate={setFromDate}
+        toDate={toDate} setToDate={setToDate}
+        onClear={handleClearFilters}
+      />
+
+      {/* Table Section */}
+      <SupplierTable 
+        suppliers={response?.data || []}
+        isLoading={isLoading || isFetching}
+        onDelete={handleDelete}
+      />
+    </div>
   );
 }

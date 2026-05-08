@@ -46,7 +46,8 @@ export default function AddOrderPage() {
   });
 
   const [lineItems, setLineItems] = useState<{
-    variant_id: string;
+    product_variant_id: string;
+    inventory_item_id?: string;
     quantity: number;
     price: number;
     title: string;
@@ -61,14 +62,15 @@ export default function AddOrderPage() {
   }, [locationsResponse]);
 
   const addLineItem = (variant: any) => {
-    const exists = lineItems.find(item => item.variant_id === variant.id);
+    const exists = lineItems.find(item => item.product_variant_id === variant.id);
     if (exists) {
       setLineItems(lineItems.map(item => 
-        item.variant_id === variant.id ? { ...item, quantity: item.quantity + 1 } : item
+        item.product_variant_id === variant.id ? { ...item, quantity: item.quantity + 1 } : item
       ));
     } else {
       setLineItems([...lineItems, {
-        variant_id: variant.id,
+        product_variant_id: variant.id,
+        inventory_item_id: variant.inventory_item?.id,
         quantity: 1,
         price: parseFloat(variant.price),
         title: variant.title,
@@ -79,13 +81,13 @@ export default function AddOrderPage() {
   };
 
   const removeLineItem = (variantId: string) => {
-    setLineItems(lineItems.filter(item => item.variant_id !== variantId));
+    setLineItems(lineItems.filter(item => item.product_variant_id !== variantId));
   };
 
   const updateQuantity = (variantId: string, qty: number) => {
     if (qty < 1) return;
     setLineItems(lineItems.map(item => 
-      item.variant_id === variantId ? { ...item, quantity: qty } : item
+      item.product_variant_id === variantId ? { ...item, quantity: qty } : item
     ));
   };
 
@@ -166,7 +168,7 @@ export default function AddOrderPage() {
                 ) : (
                   lineItems.map((item) => (
                     <motion.div 
-                      key={item.variant_id}
+                      key={item.product_variant_id}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
@@ -183,7 +185,7 @@ export default function AddOrderPage() {
                         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                           <button 
                             type="button"
-                            onClick={() => updateQuantity(item.variant_id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product_variant_id, item.quantity - 1)}
                             className="px-2 py-1 hover:bg-gray-50 text-gray-500 border-r border-gray-200"
                           >-</button>
                           <input 
@@ -194,7 +196,7 @@ export default function AddOrderPage() {
                           />
                           <button 
                             type="button"
-                            onClick={() => updateQuantity(item.variant_id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product_variant_id, item.quantity + 1)}
                             className="px-2 py-1 hover:bg-gray-50 text-gray-500 border-l border-gray-200"
                           >+</button>
                         </div>
@@ -203,7 +205,7 @@ export default function AddOrderPage() {
                           <p className="text-[10px] text-gray-400">${item.price.toFixed(2)} ea</p>
                         </div>
                         <button 
-                          onClick={() => removeLineItem(item.variant_id)}
+                          onClick={() => removeLineItem(item.product_variant_id)}
                           className="p-1.5 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
                         >
                           <Trash2 className="h-4 w-4" />

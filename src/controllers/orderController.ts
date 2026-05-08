@@ -120,10 +120,26 @@ export class OrderController {
       if (orderError) throw orderError;
 
       // 3. Create Line Items
-      const lineItemsToInsert = line_items.map(item => ({
-        order_id: order.id,
-        ...item,
-        tax_price: item.price * 0.1, // Demo tax per item
+      const lineItemsToInsert = await Promise.all(line_items.map(async item => {
+        let invItemId = item.inventory_item_id;
+        
+        // Fail-safe: Resolve inventory_item_id from variant if missing
+        if (!invItemId) {
+          const { data: invItem } = await supabase
+            .from('inventory_items')
+            .select('id')
+            .eq('variant_id', item.product_variant_id)
+            .single();
+          invItemId = invItem?.id;
+        }
+
+        return {
+          order_id: order.id,
+          ...item,
+          inventory_item_id: invItemId,
+          fulfillable_quantity: item.quantity,
+          tax_price: (item.price - (item.total_discount || 0)) * 0.1,
+        };
       }));
 
       const { error: itemsError } = await supabase
@@ -159,16 +175,21 @@ export class OrderController {
 
       // 2. Check Stock & Prepare Updates
       for (const item of order.line_items) {
-        if (!item.variant_id) continue;
+        if (!item.product_variant_id) continue;
 
         // Fetch Inventory Item for Variant
+        console.log(`DEBUG: Searching for variant_id: [${item.product_variant_id}] for item: ${item.title}`);
         const { data: invItem, error: invItemError } = await supabase
-            .from('inventory_items')
-            .select('id, tracked')
-            .eq('variant_id', item.variant_id)
-            .single();
-        
-        if (invItemError || !invItem) throw new Error(`Inventory item not found for variant ${item.title}`);
+          .from('inventory_items')
+          .select('id, sku')
+          .eq('variant_id', item.product_variant_id)
+          .single();
+
+        if (invItemError || !invItem) {
+          console.error(`DEBUG: Supabase Error for variant ${item.product_variant_id}:`, invItemError);
+          logger.error(`ConfirmOrder: Inventory item not found for variant ${item.product_variant_id}. Error:`, invItemError);
+          throw new Error(`Inventory item not found for variant ${item.title}`);
+        }
         if (!invItem.tracked) continue;
 
         // Fetch Inventory Level at Location
@@ -190,34 +211,28 @@ export class OrderController {
         // 3. Update Inventory Level (Increment Committed)
         const { error: updateLevelError } = await supabase
             .from('inventory_levels')
-            .update({ committed: invLevel.committed + item.quantity })
+            .update({ 
+                committed: invLevel.committed + item.quantity 
+            })
             .eq('id', invLevel.id);
 
         if (updateLevelError) throw updateLevelError;
 
-        // 4. Create Inventory Adjustment (Sale)
+        // 4. Create Inventory Adjustment (Reservation/Committed)
+        // Note: We don't decrement on_hand here, it happens during fulfillment.
+        // But we record the adjustment for tracking.
         const { error: adjError } = await supabase
             .from('inventory_adjustments')
             .insert({
                 inventory_item_id: invItem.id,
                 location_id: locationId,
-                delta: -item.quantity,
+                delta: 0, // No physical change yet
                 reason: 'sale',
                 reference_document_type: 'order',
                 reference_document_id: order.id,
             });
         
         if (adjError) throw adjError;
-        
-        // Note: In a real "Confirm", we might also decrement on_hand if it's shipped.
-        // The requirement says: "On confirm: write inventory adjustment (delta = -qty) AND Increment committed qty".
-        // Usually, adjustment decrements on_hand.
-        const { error: onHandError } = await supabase
-            .from('inventory_levels')
-            .update({ on_hand: invLevel.on_hand - item.quantity })
-            .eq('id', invLevel.id);
-        
-        if (onHandError) throw onHandError;
       }
 
       // 5. Update Order

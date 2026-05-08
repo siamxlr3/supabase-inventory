@@ -17,6 +17,13 @@ export const fulfillmentApi = baseApi.injectEndpoints({
             ]
           : [{ type: 'Fulfillment', id: 'LIST' }],
     }),
+    getFulfillmentOrders: builder.query<ApiResponse<any[]>, any>({
+      query: (filters) => ({
+        url: '/fulfillments/orders',
+        params: filters || {},
+      }),
+      providesTags: [{ type: 'Fulfillment', id: 'QUEUE' }],
+    }),
     createFulfillment: builder.mutation<ApiResponse<Fulfillment>, CreateFulfillmentDTO>({
       query: (body) => ({
         url: '/fulfillments',
@@ -52,6 +59,7 @@ export const fulfillmentApi = baseApi.injectEndpoints({
 
 export const {
   useGetFulfillmentsQuery,
+  useGetFulfillmentOrdersQuery,
   useCreateFulfillmentMutation,
   useUpdateFulfillmentMutation,
   useDeleteFulfillmentMutation,
