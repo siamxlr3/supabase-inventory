@@ -314,81 +314,96 @@ export default function EditProductPage() {
         </div>
 
         {step === 1 ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="xl:col-span-2 space-y-6">
-              <Card>
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">General Information</h3>
-                <div className="space-y-4">
-                  <Input label="Product Name" id="title" value={formData.title} onChange={handleChange} />
-                  <Textarea label="Description" id="description" value={formData.description} onChange={handleChange} />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input label="Handle / Slug" id="handle" value={formData.handle} onChange={handleChange} />
-                    <Input label="Vendor" id="vendor" value={formData.vendor} onChange={handleChange} />
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            {/* Top Row: Image (2/3) and Status (1/3) */}
+            <div className="xl:col-span-2">
+              <Card className="border-gray-100 shadow-sm overflow-hidden h-full flex flex-col">
+                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Visual Identity</h3>
+                </div>
+                <div className="flex-1 p-6 flex flex-col justify-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <div className="max-w-xl mx-auto w-full">
+                    {imagePreview ? (
+                      <div className="relative group rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+                        <div className="relative w-full aspect-[21/9] bg-gray-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={imagePreview} alt="Product preview" className="w-full h-full object-contain p-4" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-3 bg-white rounded-full text-gray-700 hover:scale-110 transition-transform shadow-xl"
+                            title="Replace image"
+                          >
+                            <Upload className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={removeImage}
+                            className="p-3 bg-white rounded-full text-red-600 hover:scale-110 transition-transform shadow-xl"
+                            title="Remove image"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                        {isUploading && (
+                          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+                            <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">Uploading...</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="w-full aspect-[21/9] rounded-2xl border-2 border-dashed border-gray-200 hover:border-indigo-400 bg-gray-50/50 hover:bg-indigo-50/20 transition-all duration-300 flex flex-col items-center justify-center gap-4 cursor-pointer group"
+                      >
+                        <div className="h-16 w-16 rounded-full bg-white border border-gray-100 group-hover:border-indigo-200 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                          <ImagePlus className="h-7 w-7 text-gray-300 group-hover:text-indigo-500 transition-colors" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold text-gray-600 group-hover:text-indigo-700">Click to upload product image</p>
+                          <p className="text-[11px] text-gray-400 mt-1 uppercase tracking-tight">Support: JPEG, PNG, WebP · Max 5MB</p>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 </div>
               </Card>
             </div>
-            <div className="space-y-6">
-              <Card>
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Status & Category</h3>
-                <div className="space-y-4">
-                  <Select id="status" label="Status" value={formData.status} onChange={handleChange} options={[{ label: 'Draft', value: 'draft' }, { label: 'Active', value: 'active' }, { label: 'Archived', value: 'archived' }]} />
-                  <Input label="Product Type" id="product_type" value={formData.product_type} onChange={handleChange} />
+
+            <div className="xl:col-span-1">
+              <Card className="border-gray-100 shadow-sm h-full flex flex-col">
+                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Classification</h3>
+                </div>
+                <div className="p-6 space-y-8">
+                  <Select id="status" label="Publishing Status" value={formData.status} onChange={handleChange} options={[{ label: 'Draft', value: 'draft' }, { label: 'Active', value: 'active' }, { label: 'Archived', value: 'archived' }]} />
+                  <Input label="Category / Type" id="product_type" value={formData.product_type} onChange={handleChange} />
                 </div>
               </Card>
+            </div>
 
-              <Card>
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Product Image</h3>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-                {imagePreview ? (
-                  <div className="relative group">
-                    <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2.5 bg-white/90 rounded-lg text-gray-700 hover:bg-white transition-colors shadow-sm"
-                        title="Replace image"
-                      >
-                        <Upload className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={removeImage}
-                        className="p-2.5 bg-white/90 rounded-lg text-red-600 hover:bg-white transition-colors shadow-sm"
-                        title="Remove image"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {isUploading && (
-                      <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center">
-                        <Loader2 className="h-6 w-6 text-indigo-600 animate-spin" />
-                      </div>
-                    )}
+            {/* Bottom Row: General Information */}
+            <div className="xl:col-span-3">
+              <Card className="border-gray-100 shadow-sm">
+                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Basic Details</h3>
+                </div>
+                <div className="p-6 space-y-8">
+                  <Input label="Product Name" id="title" value={formData.title} onChange={handleChange} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <Input label="Handle (SEO Friendly URL)" id="handle" value={formData.handle} onChange={handleChange} />
+                    <Input label="Vendor / Manufacturer" id="vendor" value={formData.vendor} onChange={handleChange} />
                   </div>
-                ) : (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="w-full aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-indigo-300 bg-gray-50/50 hover:bg-indigo-50/30 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group"
-                  >
-                    <div className="h-12 w-12 rounded-full bg-gray-100 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
-                      <ImagePlus className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs font-semibold text-gray-600 group-hover:text-indigo-600 transition-colors">Click to upload</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">JPEG, PNG, WebP · Max 5MB</p>
-                    </div>
-                  </button>
-                )}
+                </div>
               </Card>
             </div>
           </div>

@@ -30,6 +30,12 @@ import {
   UserCheck,
   Activity,
   ShieldCheck,
+  Settings,
+  HelpCircle,
+  ChevronRight,
+  LogOut,
+  Bell,
+  Menu,
   X,
 } from 'lucide-react';
 
@@ -71,6 +77,7 @@ const menuSections: MenuSection[] = [
         ],
       },
       { label: 'Locations', href: '/dashboard/locations', icon: <MapPin className="h-[18px] w-[18px]" /> },
+      { label: 'Orders', href: '/dashboard/orders', icon: <ShoppingCart className="h-[18px] w-[18px]" /> },
     ],
   },
   {
@@ -104,17 +111,10 @@ const menuSections: MenuSection[] = [
         icon: <ShoppingCart className="h-[18px] w-[18px]" />,
         children: [
           { label: 'All Orders', href: '/dashboard/orders', icon: <ListOrdered className="h-4 w-4" /> },
-          { label: 'Create Order', href: '/dashboard/orders/create', icon: <Plus className="h-4 w-4" /> },
+          { label: 'Create Order', href: '/dashboard/orders/add', icon: <Plus className="h-4 w-4" /> },
         ],
       },
-      {
-        label: 'Fulfilments',
-        icon: <Truck className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'Pending', href: '/dashboard/fulfilments/pending', icon: <Clock className="h-4 w-4" /> },
-          { label: 'Shipped', href: '/dashboard/fulfilments/shipped', icon: <Send className="h-4 w-4" /> },
-        ],
-      },
+      { label: 'Fulfillments', href: '/dashboard/fulfillments', icon: <Truck className="h-[18px] w-[18px]" /> },
       { label: 'Returns & Refunds', href: '/dashboard/returns', icon: <RotateCcw className="h-[18px] w-[18px]" /> },
     ],
   },
@@ -130,11 +130,6 @@ const menuSections: MenuSection[] = [
         ],
       },
       { label: 'Suppliers', href: '/dashboard/suppliers', icon: <PackageCheck className="h-[18px] w-[18px]" /> },
-    ],
-  },
-  {
-    title: 'Customers',
-    items: [
       { label: 'Customers', href: '/dashboard/customers', icon: <Users className="h-[18px] w-[18px]" /> },
     ],
   },
