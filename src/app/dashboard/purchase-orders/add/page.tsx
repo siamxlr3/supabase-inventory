@@ -66,7 +66,7 @@ export default function AddPurchaseOrderPage() {
             p.variants?.some(v => v.id === value)
           );
           const variant = product?.variants?.find(v => v.id === value);
-          const invItem = variant?.inventory?.[0];
+          const invItem = variant?.inventory_item;
 
           return { 
             ...item, 
