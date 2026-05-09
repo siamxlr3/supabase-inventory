@@ -30,7 +30,7 @@ export default function AddPurchaseOrderPage() {
   const [createAndReceive, { isLoading: isCreating }] = useCreateAndReceivePOMutation();
 
   const { data: suppliersRes } = useGetSuppliersQuery({ per_page: 100 });
-  const { data: locationsRes } = useGetLocationsQuery();
+  const { data: locationsRes } = useGetLocationsQuery({});
   const { data: productsRes } = useGetProductsQuery({ per_page: 100 });
 
   const [formData, setFormData] = useState({
