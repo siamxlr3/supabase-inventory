@@ -9,7 +9,7 @@ import { ChevronRight, ChevronDown } from 'lucide-react';
 interface Column<T> {
   key: string;
   header: string;
-  cell?: (row: T) => React.ReactNode;
+  cell?: (row: T, index: number) => React.ReactNode;
   sortable?: boolean;
   className?: string;
 }
@@ -133,7 +133,7 @@ export function DataTable<T extends Record<string, any>>({
                     )}
                     {columns.map((col) => (
                       <td key={col.key} className={cn('px-4 py-3 text-sm text-gray-700', col.className)}>
-                        {col.cell ? col.cell(row) : row[col.key]}
+                        {col.cell ? col.cell(row, i) : row[col.key]}
                       </td>
                     ))}
                   </tr>
