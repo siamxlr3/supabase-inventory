@@ -24,6 +24,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useGetCustomerQuery, useUpdateCustomerMutation } from '@/store/api/customerApi';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
+import { Customer } from '@/models/customer';
 
 interface CustomerFormData {
   first_name: string;
