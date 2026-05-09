@@ -137,7 +137,7 @@ export default function InitiateReturnPage() {
                             setSelectedOrderId(order.id);
                             // Initialize line items with 0
                             const initItems: Record<string, number> = {};
-                            order.line_items.forEach((li: any) => { initItems[li.id] = 0; });
+                            order.line_items?.forEach((li: any) => { initItems[li.id] = 0; });
                             setLineItems(initItems);
                           }}
                         >
@@ -187,7 +187,7 @@ export default function InitiateReturnPage() {
                   size="sm"
                   onClick={() => {
                     const allItems: Record<string, number> = {};
-                    selectedOrder.line_items.forEach((li: any) => { allItems[li.id] = li.quantity; });
+                    selectedOrder.line_items?.forEach((li: any) => { allItems[li.id] = li.quantity; });
                     setLineItems(allItems);
                   }}
                 >
@@ -204,7 +204,7 @@ export default function InitiateReturnPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {selectedOrder.line_items.map((item: any) => {
+                    {selectedOrder.line_items?.map((item: any) => {
                       const maxQty = item.quantity;
                       const currentQty = lineItems[item.id] || 0;
                       const priceAfterDiscount = item.price - (item.total_discount / maxQty);
