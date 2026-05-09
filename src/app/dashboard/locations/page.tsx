@@ -263,11 +263,9 @@ export default function LocationsPage() {
           columns={columns}
           data={data?.data || []}
           isLoading={isLoading || isFetching}
-          pagination={{
-            currentPage: page,
-            totalPages: data?.meta?.total_pages || 1,
-            onPageChange: setPage,
-          }}
+          currentPage={page}
+          totalPages={data?.meta?.total_pages || 1}
+          onPageChange={setPage}
           emptyState={
             <div className="py-20 text-center">
               <div className="h-20 w-20 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
@@ -291,7 +289,6 @@ export default function LocationsPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={selectedLocation ? 'Edit Location' : 'Add New Location'}
-        description="Locations are required before you can manage inventory stock."
       >
         <form onSubmit={handleSubmit} className="space-y-5 pt-4">
           <div className="grid grid-cols-1 gap-4">
