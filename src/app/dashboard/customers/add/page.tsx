@@ -37,7 +37,7 @@ export default function AddCustomerPage() {
     city: '',
     country: '',
     zip_code: '',
-    status: 'active',
+    status: 'active' as 'active' | 'inactive',
     fulfills_online_orders: false,
   });
 

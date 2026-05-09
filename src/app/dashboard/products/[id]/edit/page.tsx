@@ -50,7 +50,7 @@ export default function EditProductPage() {
     title: '',
     vendor: '',
     product_type: '',
-    status: 'draft',
+    status: 'draft' as 'draft' | 'active' | 'archived',
     handle: '',
     description: '',
   });
