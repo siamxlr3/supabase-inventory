@@ -8,6 +8,7 @@ export interface Product {
     product_type: string | null;
     status: ProductStatus;
     handle: string;
+    image_url?: string;
     published_at: string | null;
     created_at: string;
     updated_at: string;
