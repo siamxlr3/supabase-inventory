@@ -128,14 +128,14 @@ export default function LowStockAlertsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Button 
-              variant={!resolved ? 'default' : 'outline'} 
+              variant={!resolved ? 'primary' : 'outline'} 
               size="sm"
               onClick={() => setResolved(false)}
             >
               Active
             </Button>
             <Button 
-              variant={resolved ? 'default' : 'outline'} 
+              variant={resolved ? 'primary' : 'outline'} 
               size="sm"
               onClick={() => setResolved(true)}
             >
