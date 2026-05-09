@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
 
   // 1. Rate Limiting for API routes
   if (pathname.startsWith('/api')) {
-    const ip = request.ip || 'anonymous';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous';
     const isAllowed = rateLimiter(ip);
     
     if (!isAllowed) {
