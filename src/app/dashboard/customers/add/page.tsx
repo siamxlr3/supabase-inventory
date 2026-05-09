@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCreateCustomerMutation } from '@/store/api/customerApi';
 import { toast } from 'react-hot-toast';
+import { CreateCustomerDTO } from '@/models/customer';
 
 interface CustomerFormData {
   first_name: string;
@@ -63,7 +64,7 @@ export default function AddCustomerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createCustomer(formData).unwrap();
+      await createCustomer(formData as CreateCustomerDTO).unwrap();
       toast.success('Customer created successfully');
       router.push('/dashboard/customers');
     } catch (err) {

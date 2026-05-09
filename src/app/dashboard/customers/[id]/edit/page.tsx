@@ -85,7 +85,7 @@ export default function EditCustomerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateCustomer({ id: id as string, body: formData }).unwrap();
+      await updateCustomer({ id: id as string, body: formData as Partial<Customer> }).unwrap();
       toast.success('Customer updated successfully');
       router.push('/dashboard/customers');
     } catch (err) {
