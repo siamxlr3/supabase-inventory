@@ -57,7 +57,7 @@ export default function AddOrderPage() {
   // Set default location
   useEffect(() => {
     if (locationsResponse?.data?.length && !formData.location_id) {
-      setFormData(prev => ({ ...prev, location_id: locationsResponse.data[0].id }));
+      setFormData(prev => ({ ...prev, location_id: locationsResponse.data![0].id }));
     }
   }, [locationsResponse]);
 
