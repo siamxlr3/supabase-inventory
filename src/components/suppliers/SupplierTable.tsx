@@ -30,7 +30,6 @@ interface SupplierTableProps {
 export const SupplierTable: React.FC<SupplierTableProps> = ({ 
   suppliers, 
   isLoading, 
-  onEdit, 
   onDelete 
 }) => {
   if (isLoading) {
@@ -107,7 +106,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({
                   </td>
                   <td className="px-6 py-4 text-center">
                     <Badge 
-                      variant={supplier.status === 'active' ? 'success' : 'secondary'}
+                      variant={supplier.status === 'active' ? 'success' : 'default'}
                       className="capitalize"
                     >
                       {supplier.status}
