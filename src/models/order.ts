@@ -16,6 +16,7 @@ export interface Order {
   currency: string;
   location_id?: string;
   location?: any;
+  customer?: any;
   cancel_reason?: string;
   cancelled_at?: string;
   processed_at?: string;
