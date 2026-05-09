@@ -27,6 +27,7 @@ interface DataTableProps<T> {
   filters?: React.ReactNode;
   isLoading?: boolean;
   emptyMessage?: string;
+  emptyState?: React.ReactNode;
   className?: string;
   expandableRow?: (row: T) => React.ReactNode;
 }
@@ -44,6 +45,7 @@ export function DataTable<T extends Record<string, any>>({
   filters,
   isLoading,
   emptyMessage = 'No data found',
+  emptyState,
   className,
   expandableRow,
 }: DataTableProps<T>) {
@@ -111,7 +113,7 @@ export function DataTable<T extends Record<string, any>>({
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (expandableRow ? 1 : 0)} className="px-4 py-12 text-center text-gray-400 text-sm">
-                  {emptyMessage}
+                  {emptyState || emptyMessage}
                 </td>
               </tr>
             ) : (
