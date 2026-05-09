@@ -51,7 +51,7 @@ export default function DashboardPage() {
     switch (status) {
       case 'paid': return <Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px]">Paid</Badge>;
       case 'pending': return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-100 text-[10px]">Pending</Badge>;
-      case 'refunded': return <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 text-[10px]">Refunded</Badge>;
+      case 'refunded': return <Badge variant="default" className="bg-gray-100 text-gray-700 border-gray-200 text-[10px]">Refunded</Badge>;
       default: return <Badge variant="outline" className="text-[10px] capitalize">{status.replace('_', ' ')}</Badge>;
     }
   };

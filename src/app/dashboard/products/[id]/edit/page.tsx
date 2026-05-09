@@ -452,7 +452,7 @@ export default function EditProductPage() {
                           {option.values.map((v) => (
                             <Badge 
                               key={v} 
-                              variant="secondary" 
+                              variant="outline" 
                               className="pl-2 pr-1.5 py-1 gap-1.5 bg-white border-gray-200 text-gray-700 shadow-sm font-medium"
                             >
                               {v}
@@ -507,7 +507,7 @@ export default function EditProductPage() {
                           <td className="px-6 py-5 align-top pt-8">
                             <div className="flex flex-wrap gap-1.5">
                               {v.map(val => (
-                                <Badge key={val} variant="secondary" className="text-[10px] px-2 py-0.5 bg-white border-gray-200 text-gray-700 shadow-sm font-medium">{val}</Badge>
+                                <Badge key={val} variant="outline" className="text-[10px] px-2 py-0.5 bg-white border-gray-200 text-gray-700 shadow-sm font-medium">{val}</Badge>
                               ))}
                             </div>
                           </td>

@@ -479,7 +479,7 @@ export default function UnifiedProductPage() {
                           <td className="px-6 py-5 align-top pt-8">
                             <div className="flex flex-wrap gap-1.5">
                               {v.map(val => (
-                                <Badge key={val} variant="secondary" className="text-[10px] px-2 py-0.5 bg-white border-gray-200 text-gray-700 shadow-sm font-medium">{val}</Badge>
+                                <Badge key={val} variant="outline" className="text-[10px] px-2 py-0.5 bg-white border-gray-200 text-gray-700 shadow-sm font-medium">{val}</Badge>
                               ))}
                             </div>
                           </td>
