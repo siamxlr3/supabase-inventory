@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { PageHeader, DataTable, Badge, Button } from '@/components/ui';
-import { Truck, Eye, MapPin, ExternalLink } from 'lucide-react';
-import { Dropdown } from '@/components/ui/Dropdown';
+import { MoreVertical, Truck, Eye, MapPin, ExternalLink } from 'lucide-react';
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/Dropdown';
 
 const shippedFulfilments = [
   { id: 'FUL-101', orderId: 'ORD-1231', customer: 'Alice Brown', shippedDate: '2025-05-05', carrier: 'FedEx', tracking: '123456789012', status: 'shipped' },
@@ -39,11 +39,18 @@ export default function ShippedFulfilmentsPage() {
     {
       key: 'actions', header: '', className: 'w-12',
       cell: () => (
-        <Dropdown items={[
-          { label: 'Track Package', icon: <MapPin className="h-4 w-4" /> },
-          { label: 'View Order', icon: <Eye className="h-4 w-4" /> },
-          { label: 'Print Packing Slip', icon: <Truck className="h-4 w-4" /> },
-        ]} />
+        <Dropdown align="end">
+          <DropdownTrigger>
+            <button className="p-1 hover:bg-gray-100 rounded text-gray-400 transition-colors">
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </DropdownTrigger>
+          <DropdownContent>
+            <DropdownItem><MapPin className="h-4 w-4 mr-2" /> Track Package</DropdownItem>
+            <DropdownItem><Eye className="h-4 w-4 mr-2" /> View Order</DropdownItem>
+            <DropdownItem><Truck className="h-4 w-4 mr-2" /> Print Packing Slip</DropdownItem>
+          </DropdownContent>
+        </Dropdown>
       ),
     },
   ];
