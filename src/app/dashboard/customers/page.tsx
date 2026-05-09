@@ -178,13 +178,13 @@ export default function CustomersPage() {
       id: 'actions',
       cell: (info) => (
         <div className="flex justify-end">
-          <Dropdown>
+          <Dropdown align="end">
             <DropdownTrigger>
               <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors">
                 <MoreVertical className="h-4 w-4" />
               </button>
             </DropdownTrigger>
-            <DropdownContent align="end">
+            <DropdownContent>
               <DropdownItem onClick={() => {}}>
                 <Link href={`/dashboard/customers/${info.row.original.id}/edit`} className="flex items-center gap-2 w-full">
                   <Edit className="h-3.5 w-3.5" />
