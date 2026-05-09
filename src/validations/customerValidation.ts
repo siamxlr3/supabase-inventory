@@ -20,6 +20,6 @@ export const customerQuerySchema = z.object({
   status: z.enum(['active', 'inactive']).optional(),
   from_date: z.string().optional(),
   to_date: z.string().optional(),
-  page: z.string().transform(Number).default('1'),
-  per_page: z.string().transform(Number).default('10'),
+  page: z.coerce.number().int().positive().default(1),
+  per_page: z.coerce.number().int().positive().default(10),
 });
