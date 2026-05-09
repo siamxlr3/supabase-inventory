@@ -230,6 +230,24 @@ export class PurchaseOrderController {
     }
   }
 
+  static async send(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('purchase_orders')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return sendError('Purchase order not found', null, 404);
+
+      return sendSuccess('Purchase order marked as sent', data);
+    } catch (error: any) {
+      return sendError(error.message);
+    }
+  }
+
   static async delete(id: string) {
     try {
       const { error } = await supabase.from('purchase_orders').delete().eq('id', id);
