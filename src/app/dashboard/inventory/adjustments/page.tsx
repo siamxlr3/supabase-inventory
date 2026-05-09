@@ -88,7 +88,7 @@ export default function AdjustmentsPage() {
       cell: (row: InventoryAdjustment) => (
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-600 font-mono">{row.item?.sku}</span>
+          <span className="text-sm text-gray-600 font-mono">{row.inventory_item?.sku}</span>
         </div>
       ),
     },
