@@ -25,14 +25,6 @@ export default function ReturnsPage() {
   const refunds = data?.data || [];
   const totalPages = data?.meta?.total_pages || 1;
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'warning';
-      case 'rejected': return 'error';
-      default: return 'default';
-    }
-  };
 
   return (
     <>
@@ -154,7 +146,7 @@ export default function ReturnsPage() {
                       <span className="font-medium text-gray-900">${Number(refund.total_amount).toFixed(2)}</span>
                     </td>
                     <td className="px-5 py-3 text-center">
-                      <StatusBadge status={refund.status} variant={getStatusBadgeVariant(refund.status) as any} />
+                      <StatusBadge status={refund.status} />
                     </td>
                   </tr>
                 ))}
