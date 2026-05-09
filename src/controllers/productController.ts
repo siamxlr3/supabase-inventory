@@ -149,7 +149,7 @@ export class ProductController {
       const { options, variants, ...productData } = validated;
 
       // Handle published_at logic for updates
-      let finalProductData = { ...productData };
+      let finalProductData: Record<string, any> = { ...productData };
       
       if (productData.status) {
         if (productData.status === 'active') {
