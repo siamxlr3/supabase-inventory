@@ -68,7 +68,8 @@ export class InventoryReportController {
       const categoryMap: Record<string, { value: number, count: number }> = {};
 
       data.forEach(level => {
-        const cost = level.item?.cost || 0;
+        const item = level.item as any;
+        const cost = item?.cost || 0;
         const onHand = level.on_hand;
         const value = onHand * cost;
 
@@ -78,9 +79,8 @@ export class InventoryReportController {
         let productType = 'Uncategorized';
         
         // Typing workaround for deeply nested Supabase response
-        const itemAny = level.item as any;
-        if (itemAny?.variant?.product?.product_type) {
-            productType = itemAny.variant.product.product_type;
+        if (item?.variant?.product?.product_type) {
+            productType = item.variant.product.product_type;
         }
 
         if (!categoryMap[productType]) {
@@ -140,7 +140,7 @@ export class InventoryReportController {
       if (lvlError) throw lvlError;
 
       // 3. Filter for aging items (not in activeItemIds)
-      const agingItems = allLevels.filter(level => !activeItemIds.has(level.item?.id));
+      const agingItems = allLevels.filter(level => !activeItemIds.has((level.item as any)?.id));
 
       // Calculate days since last movement (we approximate using updated_at of the level, 
       // or if we really want, we could query the MAX(happened_at) for these items, but that's an N+1 query.
