@@ -40,7 +40,7 @@ export default function EditSupplierPage() {
     phone: '',
     currency_code: 'USD',
     payment_terms: '',
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
   });
 
   useEffect(() => {

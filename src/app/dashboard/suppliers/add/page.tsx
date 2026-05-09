@@ -35,7 +35,7 @@ export default function AddSupplierPage() {
     phone: '',
     currency_code: 'USD',
     payment_terms: '',
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
