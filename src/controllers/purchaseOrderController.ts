@@ -63,9 +63,10 @@ export class PurchaseOrderController {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return sendError('Purchase order not found', null, 404);
       return sendSuccess('Purchase order details', data);
     } catch (error: any) {
       return sendError(error.message);
@@ -89,7 +90,7 @@ export class PurchaseOrderController {
         .from('purchase_orders')
         .insert({ ...poData, total_cost: totalCost, status: 'received' })
         .select()
-        .single();
+        .maybeSingle();
 
       if (poError) {
         if (poError.code === '23505') return sendError('A PO with this name already exists', null, 400);
@@ -116,7 +117,7 @@ export class PurchaseOrderController {
           .select('on_hand')
           .eq('inventory_item_id', item.inventory_item_id)
           .eq('location_id', poData.destination_location_id)
-          .single();
+          .maybeSingle();
 
         if (level) {
           await supabase
@@ -148,6 +149,82 @@ export class PurchaseOrderController {
       }
 
       return sendSuccess('Purchase order created and goods received', po, null, 201);
+    } catch (error: any) {
+      return sendError(error.message);
+    }
+  }
+
+  static async receive(id: string) {
+    try {
+      // 1. Fetch PO and Line Items
+      const { data: po, error: poError } = await supabase
+        .from('purchase_orders')
+        .select('*, line_items:purchase_order_line_items(*)')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (poError || !po) throw new Error('Purchase order not found');
+      if (po.status === 'received') return sendError('Purchase order already received', null, 400);
+
+      // 2. Update inventory for each line item
+      for (const item of po.line_items) {
+        if (!item.inventory_item_id) continue;
+
+        const { data: level } = await supabase
+          .from('inventory_levels')
+          .select('on_hand')
+          .eq('inventory_item_id', item.inventory_item_id)
+          .eq('location_id', po.destination_location_id)
+          .maybeSingle();
+
+        if (level) {
+          await supabase
+            .from('inventory_levels')
+            .update({ on_hand: level.on_hand + item.quantity })
+            .eq('inventory_item_id', item.inventory_item_id)
+            .eq('location_id', po.destination_location_id);
+        } else {
+          await supabase
+            .from('inventory_levels')
+            .insert({
+              inventory_item_id: item.inventory_item_id,
+              location_id: po.destination_location_id,
+              on_hand: item.quantity,
+              committed: 0,
+              incoming: 0
+            });
+        }
+
+        // Update line item to show it's received
+        await supabase
+          .from('purchase_order_line_items')
+          .update({ quantity_received: item.quantity })
+          .eq('id', item.id);
+
+        // Record adjustment
+        await supabase
+          .from('inventory_adjustments')
+          .insert({
+            inventory_item_id: item.inventory_item_id,
+            location_id: po.destination_location_id,
+            delta: item.quantity,
+            reason: 'received',
+            reference_document_type: 'purchase_order',
+            reference_document_id: po.id
+          });
+      }
+
+      // 3. Update PO status
+      const { data: updatedPo, error: updateError } = await supabase
+        .from('purchase_orders')
+        .update({ status: 'received' })
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (updateError) throw updateError;
+
+      return sendSuccess('Purchase order received successfully', updatedPo);
     } catch (error: any) {
       return sendError(error.message);
     }
