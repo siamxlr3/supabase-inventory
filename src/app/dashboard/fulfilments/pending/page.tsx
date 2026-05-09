@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { PageHeader, DataTable, Button, Badge } from '@/components/ui';
-import { Package, Truck, Eye, CheckCircle } from 'lucide-react';
-import { Dropdown } from '@/components/ui/Dropdown';
+import { MoreVertical, Package, Truck, Eye, CheckCircle } from 'lucide-react';
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '@/components/ui/Dropdown';
 
 const pendingFulfilments = [
   { id: 'FUL-001', orderId: 'ORD-1234', customer: 'John Doe', date: '2025-05-06', items: 3, priority: 'high', location: 'Main Warehouse' },
@@ -31,13 +31,20 @@ export default function PendingFulfilmentsPage() {
     {
       key: 'actions', header: '', className: 'w-12',
       cell: () => (
-        <Dropdown items={[
-          { label: 'Start Picking', icon: <Package className="h-4 w-4" /> },
-          { label: 'Print Labels', icon: <CheckCircle className="h-4 w-4" /> },
-          { label: 'View Order', icon: <Eye className="h-4 w-4" /> },
-          { divider: true, label: '' },
-          { label: 'Mark Shipped', icon: <Truck className="h-4 w-4" /> },
-        ]} />
+        <Dropdown align="end">
+          <DropdownTrigger>
+            <button className="p-1 hover:bg-gray-100 rounded text-gray-400 transition-colors">
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </DropdownTrigger>
+          <DropdownContent>
+            <DropdownItem><Package className="h-4 w-4 mr-2" /> Start Picking</DropdownItem>
+            <DropdownItem><CheckCircle className="h-4 w-4 mr-2" /> Print Labels</DropdownItem>
+            <DropdownItem><Eye className="h-4 w-4 mr-2" /> View Order</DropdownItem>
+            <div className="h-px bg-gray-100 my-1" />
+            <DropdownItem><Truck className="h-4 w-4 mr-2" /> Mark Shipped</DropdownItem>
+          </DropdownContent>
+        </Dropdown>
       ),
     },
   ];
