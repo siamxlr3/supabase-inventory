@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { rateLimiter } from '@/lib/rateLimiter';
 import { logger } from '@/lib/logger';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const start = Date.now();
   const { pathname } = request.nextUrl;
 
