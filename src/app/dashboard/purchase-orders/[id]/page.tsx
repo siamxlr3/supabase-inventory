@@ -71,7 +71,7 @@ export default function PODetailsPage() {
                 Delete
               </Button>
             )}
-            <Badge variant={isReceived ? 'success' : 'secondary'} className="px-4 py-2 text-xs font-bold uppercase tracking-widest gap-2">
+            <Badge variant={isReceived ? 'success' : 'default'} className="px-4 py-2 text-xs font-bold uppercase tracking-widest gap-2">
               {isReceived ? <CheckCircle2 className="h-4 w-4" /> : <Package className="h-4 w-4" />}
               {po.status}
             </Badge>
@@ -131,7 +131,7 @@ export default function PODetailsPage() {
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</p>
                 <Badge 
-                  variant={isReceived ? 'success' : 'secondary'} 
+                  variant={isReceived ? 'success' : 'default'} 
                   className="mt-1 uppercase text-[10px] font-black tracking-widest"
                 >
                   {po.status}
