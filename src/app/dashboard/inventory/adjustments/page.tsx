@@ -184,11 +184,9 @@ export default function AdjustmentsPage() {
           columns={columns}
           data={adjustments?.data || []}
           isLoading={isLoading}
-          pagination={{
-            currentPage: page,
-            totalPages: adjustments?.meta?.total_pages || 1,
-            onPageChange: setPage,
-          }}
+          currentPage={page}
+          totalPages={adjustments?.meta?.total_pages || 1}
+          onPageChange={setPage}
         />
       </Card>
 
