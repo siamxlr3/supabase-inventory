@@ -90,7 +90,7 @@ export default function LowStockAlertsPage() {
       key: 'status',
       header: 'Status',
       cell: (row: Alert) => (
-        <Badge variant={row.resolved ? 'default' : 'destructive'} className={row.resolved ? 'bg-green-100 text-green-700 border-green-200' : ''}>
+        <Badge variant={row.resolved ? 'default' : 'danger'} className={row.resolved ? 'bg-green-100 text-green-700 border-green-200' : ''}>
           {row.resolved ? 'Resolved' : 'Active'}
         </Badge>
       ),
