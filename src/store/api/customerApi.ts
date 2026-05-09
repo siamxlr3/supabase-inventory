@@ -21,7 +21,7 @@ export const customerApi = baseApi.injectEndpoints({
       query: (id) => `/customers/${id}`,
       providesTags: (result, error, id) => [{ type: 'Customer', id }],
     }),
-    createCustomer: builder.mutation<ApiResponse<Customer>, Partial<Customer>>({
+    createCustomer: builder.mutation<ApiResponse<Customer>, any>({
       query: (body) => ({
         url: '/customers',
         method: 'POST',
@@ -29,7 +29,7 @@ export const customerApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Customer', id: 'LIST' }],
     }),
-    updateCustomer: builder.mutation<ApiResponse<Customer>, { id: string; body: Partial<Customer> }>({
+    updateCustomer: builder.mutation<ApiResponse<Customer>, { id: string; body: any }>({
       query: ({ id, body }) => ({
         url: `/customers/${id}`,
         method: 'PATCH',
