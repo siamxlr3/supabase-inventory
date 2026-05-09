@@ -47,7 +47,7 @@ export default function InitiateReturnPage() {
     
     Object.entries(lineItems).forEach(([id, qty]) => {
       if (qty > 0) {
-        const item = selectedOrder.line_items.find((li: any) => li.id === id);
+        const item = selectedOrder.line_items?.find((li: any) => li.id === id);
         if (item) {
           const pricePerItem = item.price - (item.total_discount / item.quantity);
           total += pricePerItem * qty;
