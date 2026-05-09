@@ -25,6 +25,19 @@ import { useGetCustomerQuery, useUpdateCustomerMutation } from '@/store/api/cust
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
+interface CustomerFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  zip_code: string;
+  status: 'active' | 'inactive';
+  fulfills_online_orders: boolean;
+}
+
 export default function EditCustomerPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -32,7 +45,7 @@ export default function EditCustomerPage() {
   const { data: response, isLoading: isLoadingCustomer } = useGetCustomerQuery(id as string);
   const [updateCustomer, { isLoading: isUpdating }] = useUpdateCustomerMutation();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CustomerFormData>({
     first_name: '',
     last_name: '',
     email: '',
@@ -41,7 +54,7 @@ export default function EditCustomerPage() {
     city: '',
     country: '',
     zip_code: '',
-    status: 'active' as 'active' | 'inactive',
+    status: 'active',
     fulfills_online_orders: false,
   });
 

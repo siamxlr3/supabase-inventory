@@ -31,11 +31,21 @@ interface VariantDetail {
   harmonized_system_code: string;
 }
 
+interface ProductFormData {
+  title: string;
+  vendor: string;
+  product_type: string;
+  status: 'draft' | 'active' | 'archived';
+  handle: string;
+  description: string;
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const { id } = useParams();
   const [step, setStep] = useState(1);
   
+  // API Mutations/Queries
   const { data: productData, isLoading: isLoadingProduct } = useGetProductQuery(id as string);
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
   const [uploadImage, { isLoading: isUploading }] = useUploadProductImageMutation();
@@ -46,11 +56,11 @@ export default function EditProductPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 1 State: Product Info
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductFormData>({
     title: '',
     vendor: '',
     product_type: '',
-    status: 'draft' as 'draft' | 'active' | 'archived',
+    status: 'draft',
     handle: '',
     description: '',
   });

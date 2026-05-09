@@ -24,11 +24,24 @@ import { useRouter } from 'next/navigation';
 import { useCreateCustomerMutation } from '@/store/api/customerApi';
 import { toast } from 'react-hot-toast';
 
+interface CustomerFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  zip_code: string;
+  status: 'active' | 'inactive';
+  fulfills_online_orders: boolean;
+}
+
 export default function AddCustomerPage() {
   const router = useRouter();
   const [createCustomer, { isLoading }] = useCreateCustomerMutation();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CustomerFormData>({
     first_name: '',
     last_name: '',
     email: '',
@@ -37,7 +50,7 @@ export default function AddCustomerPage() {
     city: '',
     country: '',
     zip_code: '',
-    status: 'active' as 'active' | 'inactive',
+    status: 'active',
     fulfills_online_orders: false,
   });
 
