@@ -45,8 +45,8 @@ export default function InventoryByProductPage() {
             <Package className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{row.item?.variant?.product?.title}</p>
-            <p className="text-xs text-gray-500 font-mono">{row.item?.variant?.title} • {row.item?.sku}</p>
+            <p className="text-sm font-semibold text-gray-900">{row.inventory_item?.variant?.product?.title}</p>
+            <p className="text-xs text-gray-500 font-mono">{row.inventory_item?.variant?.title} • {row.inventory_item?.sku}</p>
           </div>
         </div>
       ),
@@ -202,11 +202,9 @@ export default function InventoryByProductPage() {
           columns={columns}
           data={data?.data || []}
           isLoading={isLoading}
-          pagination={{
-            currentPage: page,
-            totalPages: data?.meta?.total_pages || 1,
-            onPageChange: setPage,
-          }}
+          currentPage={page}
+          totalPages={data?.meta?.total_pages || 1}
+          onPageChange={setPage}
         />
       </Card>
     </div>

@@ -54,8 +54,8 @@ export default function LowStockAlertsPage() {
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{row.item?.variant?.title}</p>
-            <p className="text-xs text-gray-500 font-mono">{row.item?.sku}</p>
+            <p className="text-sm font-semibold text-gray-900">{row.inventory_item?.variant?.title}</p>
+            <p className="text-xs text-gray-500 font-mono">{row.inventory_item?.sku}</p>
           </div>
         </div>
       ),
@@ -176,11 +176,9 @@ export default function LowStockAlertsPage() {
           columns={columns}
           data={data?.data || []}
           isLoading={isLoading}
-          pagination={{
-            currentPage: page,
-            totalPages: data?.meta?.total_pages || 1,
-            onPageChange: setPage,
-          }}
+          currentPage={page}
+          totalPages={data?.meta?.total_pages || 1}
+          onPageChange={setPage}
           emptyState={
             <div className="py-20 text-center">
               <div className="h-20 w-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
