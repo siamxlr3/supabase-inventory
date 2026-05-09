@@ -184,7 +184,8 @@ export default function UnifiedProductPage() {
       const detail = variantDetails[title] || { 
         title, sku: '', barcode: '', price: '0.00', compare_at_price: '',
         weight: '0.0', weight_unit: 'kg', position: i, taxable: true,
-        requires_shipping: true, tracked: true 
+        requires_shipping: true, tracked: true, cost: '0.00',
+        country_code_of_origin: '', harmonized_system_code: ''
       };
 
       return {
@@ -209,6 +210,8 @@ export default function UnifiedProductPage() {
       await updateProduct({
         id: productId,
         body: {
+          ...formData,
+          image_url: imageUrl,
           options: options.map((o, idx) => ({ name: o.name, position: idx })),
           variants: finalVariants
         }

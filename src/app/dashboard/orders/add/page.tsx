@@ -70,7 +70,7 @@ export default function AddOrderPage() {
     } else {
       setLineItems([...lineItems, {
         product_variant_id: variant.id,
-        inventory_item_id: variant.inventory_item?.id,
+        inventory_item_id: variant.inventory?.[0]?.id,
         quantity: 1,
         price: parseFloat(variant.price),
         title: variant.title,
@@ -143,11 +143,11 @@ export default function AddOrderPage() {
         }
       />
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column: Line Items & Selection */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-4">
           <Card className="border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-gray-400" />
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Line Items</h3>
@@ -158,12 +158,12 @@ export default function AddOrderPage() {
             <div className="divide-y divide-gray-50">
               <AnimatePresence initial={false}>
                 {lineItems.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <div className="h-12 w-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                      <Package className="h-6 w-6 text-gray-200" />
+                  <div className="p-8 text-center">
+                    <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-2">
+                      <Package className="h-5 w-5 text-gray-200" />
                     </div>
                     <p className="text-sm font-medium text-gray-400">No items added yet</p>
-                    <p className="text-xs text-gray-300 mt-1">Select products from the catalog to add them to this order</p>
+                    <p className="text-[10px] text-gray-300 mt-0.5">Select products from the catalog to add them</p>
                   </div>
                 ) : (
                   lineItems.map((item) => (
@@ -172,7 +172,7 @@ export default function AddOrderPage() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="p-4 flex items-center gap-4"
+                      className="p-3 flex items-center gap-3"
                     >
                       <div className="h-10 w-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
                         <Package className="h-5 w-5 text-gray-400" />
@@ -219,17 +219,17 @@ export default function AddOrderPage() {
           </Card>
 
           <Card className="border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
               <Search className="h-4 w-4 text-gray-400" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Product Catalog</h3>
             </div>
-            <div className="p-0 max-h-[400px] overflow-y-auto">
+            <div className="p-0 max-h-[280px] overflow-y-auto">
               {isLoadingProducts ? (
-                <div className="p-8 text-center"><Loader size="sm" /></div>
+                <div className="p-6 text-center"><Loader size="sm" /></div>
               ) : (
                 <div className="divide-y divide-gray-50">
                   {productsResponse?.data?.map(product => (
-                    <div key={product.id} className="p-4 space-y-3">
+                    <div key={product.id} className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-tight">{product.title}</span>
                         <Badge variant="outline" className="text-[9px] h-4">{product.vendor}</Badge>
@@ -258,13 +258,13 @@ export default function AddOrderPage() {
         </div>
 
         {/* Right Column: Customer & Payment */}
-        <div className="space-y-8">
+        <div className="space-y-4">
           <Card className="border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
               <Mail className="h-4 w-4 text-gray-400" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Customer Details</h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 space-y-3">
               <Input 
                 label="Email Address" 
                 placeholder=""
@@ -282,11 +282,11 @@ export default function AddOrderPage() {
           </Card>
 
           <Card className="border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-gray-400" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Method</h3>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 space-y-3">
               <Select 
                 label="Method"
                 value={formData.payment_method}
@@ -302,12 +302,12 @@ export default function AddOrderPage() {
           </Card>
 
           <Card className="border-indigo-100 shadow-sm overflow-hidden bg-indigo-50/30">
-            <div className="p-6 space-y-3">
+            <div className="p-4 space-y-2">
               <div className="flex justify-between text-sm font-medium">
                 <span className="text-indigo-900/60 uppercase tracking-widest text-[10px]">Subtotal</span>
                 <span className="text-indigo-900">${subtotal.toFixed(2)}</span>
               </div>
-              <div className="pt-3 border-t border-indigo-100 flex justify-between items-center">
+              <div className="pt-2 border-t border-indigo-100 flex justify-between items-center">
                 <span className="text-xs font-bold text-indigo-900 uppercase tracking-widest">Total</span>
                 <span className="text-xl font-bold text-indigo-600">${total.toFixed(2)}</span>
               </div>

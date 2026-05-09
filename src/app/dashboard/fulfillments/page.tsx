@@ -37,8 +37,13 @@ import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { FulfillmentForm } from '@/components/orders/FulfillmentForm';
+import { useRealtime } from '@/hooks/useRealtime';
 
 export default function FulfillmentsPage() {
+  // Real-time subscriptions
+  useRealtime('fulfillment_orders', ['Fulfillment', 'Order']);
+  useRealtime('fulfillments', ['Fulfillment', 'Order']);
+
   const [activeTab, setActiveTab] = useState<'queue' | 'shipments'>('queue');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -60,9 +65,14 @@ export default function FulfillmentsPage() {
   const orders = queueResponse?.data || [];
   const meta = queueResponse?.meta || { total: 0, total_pages: 1 };
 
-  // Flatten logic: Fulfillment Order -> Shipments -> Line Items
+  // Safety: Track processed fulfillment order IDs to prevent duplicates in UI
+  const processedFOIds = new Set();
   const flatRows: any[] = [];
+  
   orders.forEach((fo: any) => {
+    if (processedFOIds.has(fo.id)) return;
+    processedFOIds.add(fo.id);
+    
     const order = fo.order;
     const shipments = order?.fulfillments || [];
     

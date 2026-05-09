@@ -69,7 +69,7 @@ export class ProductController {
           )
         `)
         .eq(isUuid ? 'id' : 'handle', idOrHandle)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       if (!data) return sendError('Product not found', null, 404);
@@ -85,10 +85,13 @@ export class ProductController {
       const validated = createProductSchema.parse(body);
       const { options, variants, ...productData } = validated;
 
-      // Automatically set published_at if status is active
+      // Set published_at if status is active, otherwise null
+      const status = productData.status || 'draft';
+      const now = new Date().toISOString();
       const finalProductData = {
         ...productData,
-        published_at: productData.status === 'active' ? new Date().toISOString() : null
+        status,
+        published_at: status === 'active' ? now : null
       };
 
       const { data: product, error: pError } = await supabase.from('products').insert(finalProductData).select().single();
@@ -107,10 +110,11 @@ export class ProductController {
       if (variants && variants.length > 0) {
         for (const variantData of variants) {
           const { option_values, inventory, ...vData } = variantData;
-          const { data: variant, error: vError } = await supabase.from('product_variants').insert({ ...vData, product_id: product.id }).select().single();
+          const { data: variant, error: vError } = await supabase.from('product_variants').insert({ ...vData, product_id: product.id }).select().maybeSingle();
           if (vError) throw vError;
+          if (!variant) throw new Error('Failed to create variant');
 
-          await supabase.from('inventory_items').insert({
+          const { error: iError } = await supabase.from('inventory_items').insert({
             variant_id: variant.id,
             sku: variant.sku,
             cost: inventory?.cost || 0,
@@ -118,6 +122,8 @@ export class ProductController {
             harmonized_system_code: inventory?.harmonized_system_code || null,
             tracked: inventory?.tracked ?? true
           });
+
+          if (iError) throw iError;
 
           if (option_values && option_values.length > 0) {
             const valuesToInsert = option_values.map(ov => ({
@@ -144,22 +150,34 @@ export class ProductController {
 
       // Handle published_at logic for updates
       let finalProductData = { ...productData };
+      
       if (productData.status) {
         if (productData.status === 'active') {
-          // Only set published_at if it's not already set
-          const { data: current } = await supabase.from('products').select('published_at').eq('id', id).single();
-          if (!current?.published_at) {
+          // Check if it's already published
+          const { data: currentProduct } = await supabase
+            .from('products')
+            .select('published_at')
+            .eq('id', id)
+            .maybeSingle();
+            
+          if (currentProduct && !currentProduct.published_at) {
             finalProductData.published_at = new Date().toISOString();
           }
         } else {
-          // If moving away from active, clear published_at
+          // If moving away from 'active', we clear the published date
           finalProductData.published_at = null;
         }
       }
 
-      const { data: product, error: pError } = await supabase.from('products').update(finalProductData).eq('id', id).select().single();
+      const { data: product, error: pError } = await supabase
+        .from('products')
+        .update(finalProductData)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
       if (pError) throw pError;
-      if (!product) return sendError('Product not found', null, 404);
+      if (!product) return sendError('Product not found or update failed', null, 404);
 
       if (options) {
         await supabase.from('product_options').delete().eq('product_id', id);
@@ -174,10 +192,11 @@ export class ProductController {
 
         for (const variantData of variants) {
           const { option_values, inventory, ...vData } = variantData;
-          const { data: variant, error: vError } = await supabase.from('product_variants').insert({ ...vData, product_id: id }).select().single();
+          const { data: variant, error: vError } = await supabase.from('product_variants').insert({ ...vData, product_id: id }).select().maybeSingle();
           if (vError) throw vError;
+          if (!variant) throw new Error('Failed to update variant');
 
-          await supabase.from('inventory_items').insert({
+          const { error: iError } = await supabase.from('inventory_items').insert({
             variant_id: variant.id,
             sku: variant.sku,
             cost: inventory?.cost || 0,
@@ -185,6 +204,8 @@ export class ProductController {
             harmonized_system_code: inventory?.harmonized_system_code || null,
             tracked: inventory?.tracked ?? true
           });
+
+          if (iError) throw iError;
 
           if (option_values && option_values.length > 0) {
             const valuesToInsert = option_values.map(ov => ({

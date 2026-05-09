@@ -144,11 +144,11 @@ export default function OrderDetailsPage() {
         }
       />
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-4">
           <Card className="border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-gray-400" />
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Line Items</h3>
@@ -157,7 +157,7 @@ export default function OrderDetailsPage() {
             </div>
             <div className="divide-y divide-gray-50">
               {order.line_items?.map((item) => (
-                <div key={item.id} className="p-4 flex items-center gap-4">
+                <div key={item.id} className="p-3 flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
                     <Package className="h-5 w-5 text-gray-400" />
                   </div>
@@ -178,8 +178,8 @@ export default function OrderDetailsPage() {
                 </div>
               ))}
             </div>
-            <div className="p-6 bg-gray-50/50 border-t border-gray-50">
-              <div className="max-w-[240px] ml-auto space-y-3">
+            <div className="p-4 bg-gray-50/50 border-t border-gray-50">
+              <div className="max-w-[240px] ml-auto space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 font-medium">Subtotal</span>
                   <span className="font-bold text-gray-900">${parseFloat(order.subtotal_price.toString()).toFixed(2)}</span>
@@ -196,13 +196,13 @@ export default function OrderDetailsPage() {
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+              <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-gray-400" />
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Details</h3>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500 font-medium">Status</span>
                   <select 
@@ -244,11 +244,11 @@ export default function OrderDetailsPage() {
             </Card>
 
             <Card className="border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+              <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
                 <Truck className="h-4 w-4 text-gray-400" />
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Fulfillment</h3>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500 font-medium">Status</span>
                   <div className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider", order.fulfillment_status === 'fulfilled' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100')}>
@@ -268,13 +268,13 @@ export default function OrderDetailsPage() {
 
             {(order as any).fulfillments?.length > 0 && (
               <Card className="border-gray-100 shadow-sm overflow-hidden bg-white">
-                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+                <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
                   <Truck className="h-4 w-4 text-gray-400" />
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Shipments</h3>
                 </div>
                 <div className="divide-y divide-gray-50">
                   {(order as any).fulfillments.map((f: any) => (
-                    <div key={f.id} className="p-4 space-y-2">
+                    <div key={f.id} className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold text-gray-400 uppercase">{f.tracking_company || 'Standard'}</span>
                         <Badge variant="outline" className="text-[10px] py-0">{f.status}</Badge>
@@ -296,14 +296,14 @@ export default function OrderDetailsPage() {
         </div>
 
         {/* Sidebar Info */}
-        <div className="space-y-8">
+        <div className="space-y-4">
           <Card className="border-gray-100 shadow-sm overflow-hidden bg-white">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
               <Mail className="h-4 w-4 text-gray-400" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Customer</h3>
             </div>
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm">
                   {order.email.charAt(0).toUpperCase()}
                 </div>
@@ -317,12 +317,12 @@ export default function OrderDetailsPage() {
           </Card>
 
           <Card className="border-gray-100 shadow-sm overflow-hidden bg-white">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/30 flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-400" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Timeline</h3>
             </div>
-            <div className="p-6">
-              <div className="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-gray-100">
+            <div className="p-4">
+              <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-gray-100">
                 <div className="flex gap-4 relative">
                   <div className="h-4 w-4 rounded-full bg-emerald-500 border-4 border-white flex-shrink-0 z-10" />
                   <div className="space-y-1">
@@ -352,7 +352,7 @@ export default function OrderDetailsPage() {
             </div>
           </Card>
 
-          <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+          <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
             <h4 className="text-[11px] font-bold text-indigo-900 uppercase tracking-widest mb-2">Order Summary</h4>
             <p className="text-xs text-indigo-700 leading-relaxed">
               This order will deduct inventory from your primary store location once confirmed. 

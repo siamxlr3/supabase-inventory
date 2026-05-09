@@ -68,52 +68,23 @@ const menuSections: MenuSection[] = [
   {
     title: 'Catalogue',
     items: [
-      {
-        label: 'Products',
-        icon: <Package className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'All Products', href: '/dashboard/products', icon: <Box className="h-4 w-4" /> },
-          { label: 'Add Product', href: '/dashboard/products/add', icon: <Plus className="h-4 w-4" /> },
-        ],
-      },
+      { label: 'Products', href: '/dashboard/products', icon: <Package className="h-[18px] w-[18px]" /> },
       { label: 'Locations', href: '/dashboard/locations', icon: <MapPin className="h-[18px] w-[18px]" /> },
-      { label: 'Orders', href: '/dashboard/orders', icon: <ShoppingCart className="h-[18px] w-[18px]" /> },
     ],
   },
   {
     title: 'Inventory',
     items: [
       { label: 'Overview', href: '/dashboard/inventory', icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
-      {
-        label: 'Stock Levels',
-        icon: <Warehouse className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'By Product', href: '/dashboard/inventory/by-product', icon: <Package className="h-4 w-4" /> },
-          { label: 'By Location', href: '/dashboard/inventory/by-location', icon: <MapPin className="h-4 w-4" /> },
-        ],
-      },
-      {
-        label: 'Adjustments',
-        icon: <ClipboardList className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'History Log', href: '/dashboard/inventory/adjustments', icon: <Clock className="h-4 w-4" /> },
-          { label: 'New Adjustment', href: '/dashboard/inventory/adjustments/new', icon: <Plus className="h-4 w-4" /> },
-        ],
-      },
+      { label: 'Stock Levels', href: '/dashboard/inventory/by-product', icon: <Warehouse className="h-[18px] w-[18px]" /> },
+      { label: 'Adjustments', href: '/dashboard/inventory/adjustments', icon: <ClipboardList className="h-[18px] w-[18px]" /> },
       { label: 'Low Stock Alerts', href: '/dashboard/inventory/low-stock', icon: <AlertTriangle className="h-[18px] w-[18px]" />, badge: '5' },
     ],
   },
   {
     title: 'Orders',
     items: [
-      {
-        label: 'Orders',
-        icon: <ShoppingCart className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'All Orders', href: '/dashboard/orders', icon: <ListOrdered className="h-4 w-4" /> },
-          { label: 'Create Order', href: '/dashboard/orders/add', icon: <Plus className="h-4 w-4" /> },
-        ],
-      },
+      { label: 'Orders', href: '/dashboard/orders', icon: <ShoppingCart className="h-[18px] w-[18px]" /> },
       { label: 'Fulfillments', href: '/dashboard/fulfillments', icon: <Truck className="h-[18px] w-[18px]" /> },
       { label: 'Returns & Refunds', href: '/dashboard/returns', icon: <RotateCcw className="h-[18px] w-[18px]" /> },
     ],
@@ -121,14 +92,7 @@ const menuSections: MenuSection[] = [
   {
     title: 'Procurement',
     items: [
-      {
-        label: 'Purchase Orders',
-        icon: <FileText className="h-[18px] w-[18px]" />,
-        children: [
-          { label: 'All POs', href: '/dashboard/purchase-orders', icon: <ListOrdered className="h-4 w-4" /> },
-          { label: 'Create PO', href: '/dashboard/purchase-orders/create', icon: <Plus className="h-4 w-4" /> },
-        ],
-      },
+      { label: 'Purchase Orders', href: '/dashboard/purchase-orders', icon: <FileText className="h-[18px] w-[18px]" /> },
       { label: 'Suppliers', href: '/dashboard/suppliers', icon: <PackageCheck className="h-[18px] w-[18px]" /> },
       { label: 'Customers', href: '/dashboard/customers', icon: <Users className="h-[18px] w-[18px]" /> },
     ],

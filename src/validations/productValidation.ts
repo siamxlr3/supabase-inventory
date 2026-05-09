@@ -34,7 +34,7 @@ export const createProductSchema = z.object({
   title: z.string().min(1, 'Product title is required'),
   vendor: z.string().nullable().optional(),
   product_type: z.string().nullable().optional(),
-  status: productStatusSchema.default('draft'),
+  status: productStatusSchema.optional(),
   handle: z.string().min(1, 'Handle is required'),
   description: z.string().nullable().optional(),
   image_url: z.string().nullable().optional(),

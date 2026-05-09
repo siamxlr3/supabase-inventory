@@ -124,6 +124,16 @@ export class PurchaseOrderController {
             .update({ on_hand: level.on_hand + item.quantity })
             .eq('inventory_item_id', item.inventory_item_id)
             .eq('location_id', poData.destination_location_id);
+        } else {
+          await supabase
+            .from('inventory_levels')
+            .insert({
+              inventory_item_id: item.inventory_item_id,
+              location_id: poData.destination_location_id,
+              on_hand: item.quantity,
+              committed: 0,
+              incoming: 0
+            });
         }
 
         // Record adjustment

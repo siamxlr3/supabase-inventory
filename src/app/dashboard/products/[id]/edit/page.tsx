@@ -250,6 +250,8 @@ export default function EditProductPage() {
       await updateProduct({
         id: id as string,
         body: {
+          ...formData,
+          image_url: imageUrl,
           options: options.map((o, idx) => ({ name: o.name, position: idx })),
           variants: finalVariants
         }

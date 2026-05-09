@@ -1,61 +1,39 @@
 'use client';
 
 import React from 'react';
-import { PageHeader, StatsCard, Card } from '@/components/ui';
+import { PageHeader, StatsCard, Card, Badge } from '@/components/ui';
 import {
-  DollarSign, Package, ShoppingCart, AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Eye,
+  Package, ShoppingCart, AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, FileText,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
+import Link from 'next/link';
 
-const revenueData = [
-  { month: 'Jan', revenue: 4200, orders: 120 },
-  { month: 'Feb', revenue: 5100, orders: 145 },
-  { month: 'Mar', revenue: 4800, orders: 132 },
-  { month: 'Apr', revenue: 6200, orders: 178 },
-  { month: 'May', revenue: 7100, orders: 201 },
-  { month: 'Jun', revenue: 6800, orders: 190 },
-  { month: 'Jul', revenue: 8200, orders: 245 },
-];
-
-const ordersByCategory = [
-  { name: 'Electronics', value: 420 },
-  { name: 'Apparel', value: 380 },
-  { name: 'Home', value: 290 },
-  { name: 'Sports', value: 210 },
-  { name: 'Books', value: 180 },
-];
-
-const recentOrders = [
-  { id: 'ORD-1234', customer: 'John Doe', amount: '$245.00', status: 'completed', time: '2m ago' },
-  { id: 'ORD-1233', customer: 'Jane Smith', amount: '$189.50', status: 'processing', time: '15m ago' },
-  { id: 'ORD-1232', customer: 'Bob Johnson', amount: '$520.00', status: 'pending', time: '1h ago' },
-  { id: 'ORD-1231', customer: 'Alice Brown', amount: '$78.25', status: 'shipped', time: '2h ago' },
-  { id: 'ORD-1230', customer: 'Charlie Wilson', amount: '$340.00', status: 'completed', time: '3h ago' },
-];
-
-const lowStockItems = [
-  { name: 'Wireless Mouse Pro', sku: 'WMP-001', stock: 3, threshold: 10 },
-  { name: 'USB-C Hub 7-in-1', sku: 'UCH-007', stock: 5, threshold: 15 },
-  { name: 'Laptop Stand Aluminum', sku: 'LSA-012', stock: 2, threshold: 8 },
-  { name: 'Mechanical Keyboard', sku: 'MKB-003', stock: 7, threshold: 20 },
-];
-
-const statusColors: Record<string, string> = {
-  completed: 'bg-emerald-50 text-emerald-700',
-  processing: 'bg-blue-50 text-blue-700',
-  pending: 'bg-amber-50 text-amber-700',
-  shipped: 'bg-indigo-50 text-indigo-700',
-};
-
-import { useGetAlertsQuery, useGetInventoryLevelsQuery } from '@/store/api/inventoryApi';
-import { useGetProductsQuery, useGetProductSummaryQuery } from '@/store/api/productApi';
+import { useGetAlertsQuery } from '@/store/api/inventoryApi';
+import { useGetProductSummaryQuery } from '@/store/api/productApi';
+import { useGetOrdersQuery } from '@/store/api/orderApi';
+import { useGetPurchaseOrdersQuery } from '@/store/api/purchaseOrderApi';
+import { useGetAnalyticsQuery } from '@/store/api/dashboardApi';
+import { format, subDays } from 'date-fns';
 
 export default function DashboardPage() {
+  const [fromDate, setFromDate] = React.useState<string>('');
+  const [toDate, setToDate] = React.useState<string>('');
+
+  const { data: analyticsResponse, isFetching: isAnalyticsFetching } = useGetAnalyticsQuery({
+    from_date: fromDate || undefined,
+    to_date: toDate || undefined,
+  });
+
+  const revenueData = analyticsResponse?.data?.revenueData || [];
+  const ordersByCategory = analyticsResponse?.data?.ordersByCategory || [];
   const { data: productSummary } = useGetProductSummaryQuery();
   const { data: activeAlerts } = useGetAlertsQuery({ resolved: false, per_page: 5 });
-  const { data: inventoryLevels } = useGetInventoryLevelsQuery({ per_page: 1 });
+  const { data: pendingOrders } = useGetOrdersQuery({ fulfillment_status: 'unfulfilled', per_page: 1 });
+  // Let's assume open POs are in 'sent' or 'draft' status
+  const { data: openPOs } = useGetPurchaseOrdersQuery({ status: 'sent', per_page: 1 });
+  const { data: recentOrdersData } = useGetOrdersQuery({ per_page: 5 });
 
   const summary = productSummary?.data || {
     totalProducts: 0,
@@ -65,6 +43,18 @@ export default function DashboardPage() {
   };
 
   const alertCount = activeAlerts?.meta?.total_count || 0;
+  const pendingCount = pendingOrders?.meta?.total || 0;
+  const openPOCount = openPOs?.meta?.total || 0;
+  const recentOrdersList = recentOrdersData?.data || [];
+
+  const getFinancialBadge = (status: string) => {
+    switch (status) {
+      case 'paid': return <Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px]">Paid</Badge>;
+      case 'pending': return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-100 text-[10px]">Pending</Badge>;
+      case 'refunded': return <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 text-[10px]">Refunded</Badge>;
+      default: return <Badge variant="outline" className="text-[10px] capitalize">{status.replace('_', ' ')}</Badge>;
+    }
+  };
 
   return (
     <>
@@ -73,36 +63,36 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <StatsCard
-          title="Total Revenue"
-          value="$0.00"
-          change="+0% from last month"
+          title="Total SKUs"
+          value={summary.totalVariants.toString()}
+          change={`${summary.totalProducts} parent products`}
           changeType="neutral"
-          icon={<DollarSign className="h-5 w-5 text-indigo-600" />}
+          icon={<Package className="h-5 w-5 text-indigo-600" />}
           iconBg="bg-indigo-50"
-        />
-        <StatsCard
-          title="Total Orders"
-          value="0"
-          change="+0% from last month"
-          changeType="neutral"
-          icon={<ShoppingCart className="h-5 w-5 text-emerald-600" />}
-          iconBg="bg-emerald-50"
-        />
-        <StatsCard
-          title="Products in Stock"
-          value={summary.totalProducts.toString()}
-          change={`${summary.totalVariants} variants`}
-          changeType="neutral"
-          icon={<Package className="h-5 w-5 text-blue-600" />}
-          iconBg="bg-blue-50"
         />
         <StatsCard
           title="Low Stock Alerts"
           value={alertCount.toString()}
-          change={alertCount > 0 ? `${alertCount} critical issues` : "All systems normal"}
+          change={alertCount > 0 ? "Requires attention" : "Stock healthy"}
           changeType={alertCount > 0 ? "negative" : "positive"}
-          icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
+          icon={<AlertTriangle className="h-5 w-5 text-rose-600" />}
+          iconBg="bg-rose-50"
+        />
+        <StatsCard
+          title="Pending Orders"
+          value={pendingCount.toString()}
+          change="Unfulfilled orders"
+          changeType="neutral"
+          icon={<ShoppingCart className="h-5 w-5 text-amber-600" />}
           iconBg="bg-amber-50"
+        />
+        <StatsCard
+          title="Open POs"
+          value={openPOCount.toString()}
+          change="Incoming stock"
+          changeType="neutral"
+          icon={<FileText className="h-5 w-5 text-blue-600" />}
+          iconBg="bg-blue-50"
         />
       </div>
 
@@ -112,10 +102,23 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-semibold text-gray-900">Revenue Overview</h3>
-              <p className="text-xs text-gray-500">Monthly revenue trend</p>
+              <p className="text-xs text-gray-500">Revenue trend based on completed orders</p>
             </div>
-            <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-              <TrendingUp className="h-3 w-3" /> +12.5%
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs font-medium focus:border-indigo-500 focus:outline-none"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+              />
+              <span className="text-xs text-gray-400">to</span>
+              <input
+                type="date"
+                className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs font-medium focus:border-indigo-500 focus:outline-none"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+              />
+              {isAnalyticsFetching && <span className="text-[10px] text-gray-400 ml-1">Loading...</span>}
             </div>
           </div>
           <div className="h-64">
@@ -128,7 +131,7 @@ export default function DashboardPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }}
@@ -167,30 +170,35 @@ export default function DashboardPage() {
               <h3 className="text-sm font-semibold text-gray-900">Recent Orders</h3>
               <p className="text-xs text-gray-500">Latest transactions</p>
             </div>
-            <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+            <Link href="/dashboard/orders" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
               View all <ArrowUpRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="divide-y divide-gray-50">
-            {recentOrders.map((order) => (
+            {recentOrdersList.map((order: any) => (
               <div key={order.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <ShoppingCart className="h-4 w-4 text-gray-500" />
+                  <div className="h-9 w-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                    <ShoppingCart className="h-4 w-4 text-indigo-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{order.customer}</p>
-                    <p className="text-xs text-gray-400">{order.id}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'Guest User'}
+                    </p>
+                    <p className="text-xs text-gray-400">{order.name} &bull; {format(new Date(order.created_at), 'MMM d, h:mm a')}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{order.amount}</p>
-                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${statusColors[order.status]}`}>
-                    {order.status}
-                  </span>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">${Number(order.total_price).toFixed(2)}</p>
+                  {getFinancialBadge(order.financial_status)}
                 </div>
               </div>
             ))}
+            {recentOrdersList.length === 0 && (
+              <div className="px-6 py-10 text-center text-sm text-gray-400">
+                No recent orders found.
+              </div>
+            )}
           </div>
         </Card>
 
@@ -201,28 +209,36 @@ export default function DashboardPage() {
               <h3 className="text-sm font-semibold text-gray-900">Low Stock Alerts</h3>
               <p className="text-xs text-gray-500">Items below threshold</p>
             </div>
-            <span className="text-[10px] font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+            <Link href="/dashboard/inventory/low-stock" className="text-[10px] font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full hover:bg-red-200 transition-colors">
               {alertCount} items
-            </span>
+            </Link>
           </div>
           <div className="divide-y divide-gray-50">
-            {(activeAlerts?.data || []).map((alert: any) => (
-              <div key={alert.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{alert.item?.variant?.title}</p>
-                  <p className="text-xs text-gray-400">SKU: {alert.item?.sku}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-red-600">Low Stock</p>
-                  <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-1">
-                    <div
-                      className="h-full bg-red-500 rounded-full"
-                      style={{ width: `30%` }}
-                    />
+            {(activeAlerts?.data || []).map((alert: any) => {
+              const currentLevel = alert.current_level || 0;
+              const threshold = alert.threshold || 10;
+              const percent = Math.min(100, Math.max(5, (currentLevel / threshold) * 100));
+              
+              return (
+                <div key={alert.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{alert.item?.variant?.title || 'Unknown Item'}</p>
+                    <p className="text-xs text-gray-400">SKU: {alert.item?.sku || 'N/A'}</p>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <p className="text-[11px] font-medium text-gray-500 mb-1">
+                      <span className="text-red-600 font-bold">{currentLevel}</span> / {threshold} available
+                    </p>
+                    <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-0.5 overflow-hidden">
+                      <div
+                        className="h-full bg-red-500 rounded-full"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {alertCount === 0 && (
               <div className="px-6 py-10 text-center text-sm text-gray-400">
                 No active alerts. All items are well-stocked.

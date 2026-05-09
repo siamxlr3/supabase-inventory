@@ -40,10 +40,14 @@ import {
 } from '@tanstack/react-table';
 import { Order, FinancialStatus, FulfillmentStatus } from '@/models/order';
 import { cn } from '@/lib/utils';
+import { useRealtime } from '@/hooks/useRealtime';
 
 const columnHelper = createColumnHelper<Order>();
 
 export default function OrdersPage() {
+  // Real-time subscription
+  useRealtime('orders', ['Order']);
+
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [financialStatus, setFinancialStatus] = useState<FinancialStatus | 'all'>('all');
@@ -123,12 +127,17 @@ export default function OrdersPage() {
     }),
     columnHelper.accessor('email', {
       header: 'Customer',
-      cell: info => (
-        <div className="flex flex-col max-w-[180px]">
-          <span className="text-sm font-medium text-gray-700 truncate">{info.getValue()}</span>
-          <span className="text-[10px] text-gray-400 font-medium">Direct Order</span>
-        </div>
-      ),
+      cell: info => {
+        const order = info.row.original as any;
+        return (
+          <div className="flex flex-col max-w-[180px]">
+            <span className="text-sm font-medium text-gray-900 truncate">
+              {order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'Guest'}
+            </span>
+            <span className="text-xs text-gray-500 truncate">{info.getValue()}</span>
+          </div>
+        );
+      },
     }),
     columnHelper.accessor('financial_status', {
       header: 'Payment',

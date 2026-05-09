@@ -132,13 +132,24 @@ export class FulfillmentController {
           })
           .eq('id', item.order_line_item_id);
 
+        // Fallback for older orders without inventory_item_id directly on line item
+        let invItemId = orderLineItem.inventory_item_id;
+        if (!invItemId && orderLineItem.variant_id) {
+            const { data: invItem } = await supabase
+              .from('inventory_items')
+              .select('id')
+              .eq('variant_id', orderLineItem.variant_id)
+              .single();
+            if (invItem) invItemId = invItem.id;
+        }
+
         // Decrement On Hand and Committed Qty on Inventory Level
-        if (orderLineItem.inventory_item_id) {
+        if (invItemId) {
             const locId = orderLineItem.location_id || order.location_id;
             const { data: invLevel, error: levelError } = await supabase
                 .from('inventory_levels')
                 .select('id, on_hand, committed')
-                .eq('inventory_item_id', orderLineItem.inventory_item_id)
+                .eq('inventory_item_id', invItemId)
                 .eq('location_id', locId)
                 .single();
 
@@ -155,7 +166,7 @@ export class FulfillmentController {
                 await supabase
                     .from('inventory_adjustments')
                     .insert({
-                        inventory_item_id: orderLineItem.inventory_item_id,
+                        inventory_item_id: invItemId,
                         location_id: locId,
                         delta: -item.quantity,
                         reason: 'sale'

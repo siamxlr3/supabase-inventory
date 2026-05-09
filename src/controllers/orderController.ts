@@ -32,7 +32,7 @@ export class OrderController {
 
       let query = supabase
         .from('orders')
-        .select('*, line_items:order_line_items(*)', { count: 'exact' });
+        .select('*, line_items:order_line_items(*), customer:customers(*)', { count: 'exact' });
 
       // Search
       if (search) {
@@ -152,6 +152,17 @@ export class OrderController {
         throw itemsError;
       }
 
+      // 4. Create Fulfillment Order (Warehouse Request)
+      // This ensures it appears in the Warehouse Queue immediately
+      await supabase
+        .from('fulfillment_orders')
+        .insert({
+          order_id: order.id,
+          location_id: order.location_id,
+          status: 'open',
+          request_status: 'submitted'
+        });
+
       return sendSuccess('Order created successfully', { ...order, line_items: lineItemsToInsert }, null, 201);
     } catch (error: any) {
       return sendError(error.message || 'Failed to create order');
@@ -179,24 +190,32 @@ export class OrderController {
 
         // Fetch Inventory Item for Variant
         console.log(`DEBUG: Searching for variant_id: [${item.product_variant_id}] for item: ${item.title}`);
-        const { data: invItem, error: invItemError } = await supabase
-          .from('inventory_items')
-          .select('id, sku')
-          .eq('variant_id', item.product_variant_id)
-          .single();
+        // Use inventory_item_id directly if available, otherwise look up by variant
+        let invItemId = item.inventory_item_id;
+        let isTracked = true;
 
-        if (invItemError || !invItem) {
-          console.error(`DEBUG: Supabase Error for variant ${item.product_variant_id}:`, invItemError);
-          logger.error(`ConfirmOrder: Inventory item not found for variant ${item.product_variant_id}. Error:`, invItemError);
-          throw new Error(`Inventory item not found for variant ${item.title}`);
+        if (!invItemId) {
+          const { data: invItem, error: invItemError } = await supabase
+            .from('inventory_items')
+            .select('id, sku, tracked')
+            .eq('variant_id', item.product_variant_id)
+            .single();
+
+          if (invItemError || !invItem) {
+            logger.error(`ConfirmOrder: Inventory item not found for variant ${item.product_variant_id}. Error:`, invItemError);
+            throw new Error(`Inventory item not found for variant ${item.title}`);
+          }
+          invItemId = invItem.id;
+          isTracked = invItem.tracked;
         }
-        if (!invItem.tracked) continue;
+
+        if (!isTracked) continue;
 
         // Fetch Inventory Level at Location
         const { data: invLevel, error: invLevelError } = await supabase
             .from('inventory_levels')
             .select('*')
-            .eq('inventory_item_id', invItem.id)
+            .eq('inventory_item_id', invItemId)
             .eq('location_id', locationId)
             .single();
 
@@ -204,7 +223,6 @@ export class OrderController {
 
         const available = invLevel.on_hand - invLevel.committed;
         if (available < item.quantity) {
-            // Handle back-order logic if needed
             throw new Error(`Insufficient stock for ${item.title}. Available: ${available}, Needed: ${item.quantity}`);
         }
 
@@ -218,13 +236,11 @@ export class OrderController {
 
         if (updateLevelError) throw updateLevelError;
 
-        // 4. Create Inventory Adjustment (Reservation/Committed)
-        // Note: We don't decrement on_hand here, it happens during fulfillment.
-        // But we record the adjustment for tracking.
+        // 4. Record Adjustment for tracking
         const { error: adjError } = await supabase
             .from('inventory_adjustments')
             .insert({
-                inventory_item_id: invItem.id,
+                inventory_item_id: invItemId,
                 location_id: locationId,
                 delta: 0, // No physical change yet
                 reason: 'sale',
@@ -247,15 +263,28 @@ export class OrderController {
 
       if (updateOrderError) throw updateOrderError;
 
-      // 6. Create Fulfillment Order (The warehouse request)
-      await supabase
+      // 6. Create Fulfillment Order if not already exists
+      const { data: existingFO } = await supabase
         .from('fulfillment_orders')
-        .insert({
-            order_id: id,
-            location_id: order.location_id,
-            status: 'open',
-            request_status: 'submitted'
-        });
+        .select('id')
+        .eq('order_id', id)
+        .maybeSingle();
+
+      if (!existingFO) {
+        await supabase
+          .from('fulfillment_orders')
+          .insert({
+              order_id: id,
+              location_id: order.location_id,
+              status: 'open',
+              request_status: 'submitted'
+          });
+      } else {
+        await supabase
+          .from('fulfillment_orders')
+          .update({ request_status: 'submitted' })
+          .eq('id', existingFO.id);
+      }
 
       return sendSuccess('Order confirmed and inventory adjusted', updatedOrder);
     } catch (error: any) {
@@ -324,12 +353,12 @@ export class OrderController {
       if (order.processed_at) {
         const locationId = order.location_id;
         for (const item of order.line_items) {
-          if (!item.variant_id) continue;
+          if (!item.product_variant_id) continue;
 
           const { data: invItem } = await supabase
             .from('inventory_items')
             .select('id, tracked')
-            .eq('variant_id', item.variant_id)
+            .eq('variant_id', item.product_variant_id)
             .single();
           
           if (!invItem?.tracked) continue;
