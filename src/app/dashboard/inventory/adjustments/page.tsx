@@ -194,7 +194,6 @@ export default function AdjustmentsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="New Inventory Adjustment"
-        description="Every adjustment will create a permanent audit log entry."
       >
         <form onSubmit={handleCreateAdjustment} className="space-y-4 pt-4">
           <Select
