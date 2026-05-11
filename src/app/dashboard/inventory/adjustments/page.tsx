@@ -42,7 +42,7 @@ export default function AdjustmentsPage() {
   const [createAdjustment, { isLoading: isCreating }] = useCreateAdjustmentMutation();
 
   const inventoryItems = productData?.data?.flatMap(p => 
-    p.variants?.map(v => v.inventory_item).filter((item): item is NonNullable<typeof item> => item !== null)
+    p.variants?.map(v => v.inventory).filter((item): item is NonNullable<typeof item> => item !== null)
   ) || [];
 
   const handleCreateAdjustment = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,16 +71,20 @@ export default function AdjustmentsPage() {
     {
       key: 'happened_at',
       header: 'Date & Time',
-      cell: (row: InventoryAdjustment) => (
-        <div className="flex flex-col">
-          <span className="text-sm text-gray-900 font-medium">
-            {format(new Date(row.happened_at), 'MMM dd, yyyy')}
-          </span>
-          <span className="text-xs text-gray-400">
-            {format(new Date(row.happened_at), 'HH:mm:ss')}
-          </span>
-        </div>
-      ),
+      cell: (row: InventoryAdjustment) => {
+        const date = row.happened_at ? new Date(row.happened_at) : new Date(row.created_at);
+        const isValid = !isNaN(date.getTime());
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm text-gray-900 font-medium">
+              {isValid ? format(date, 'MMM dd, yyyy') : '—'}
+            </span>
+            <span className="text-xs text-gray-400">
+              {isValid ? format(date, 'HH:mm:ss') : '—'}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: 'item',
@@ -120,7 +124,7 @@ export default function AdjustmentsPage() {
       header: 'Reason',
       cell: (row: InventoryAdjustment) => (
         <Badge variant="outline" className="capitalize">
-          {row.reason.replace('_', ' ')}
+          {row.reason?.replace('_', ' ') || 'Manual'}
         </Badge>
       ),
     },

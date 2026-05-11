@@ -66,7 +66,7 @@ export class InventoryController {
           flatResults.push({
             inventory_item_id: item.id,
             sku: item.sku,
-            item: { sku: item.sku, variant: { ...variant, product } },
+            inventory_item: { sku: item.sku, variant: { ...variant, product } },
             on_hand: 0,
             committed: 0,
             incoming: 0,
@@ -78,7 +78,7 @@ export class InventoryController {
             flatResults.push({
               ...l,
               inventory_item_id: item.id,
-              item: { sku: item.sku, variant: { ...variant, product } }
+              inventory_item: { sku: item.sku, variant: { ...variant, product } }
             });
           });
         }
