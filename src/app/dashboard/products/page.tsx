@@ -213,25 +213,25 @@ export default function ProductsPage() {
                             <Badge variant={v.taxable ? 'default' : 'outline'} className="text-[8px] h-[18px] px-1.5">
                               {v.taxable ? 'Tax' : 'No'}
                             </Badge>
-                            <Badge variant={v.inventory?.[0]?.tracked ? 'default' : 'outline'} className="text-[8px] h-[18px] px-1.5">
-                              {v.inventory?.[0]?.tracked ? 'Track' : 'No'}
+                            <Badge variant={v.inventory_item?.[0]?.tracked ? 'default' : 'outline'} className="text-[8px] h-[18px] px-1.5">
+                              {v.inventory_item?.[0]?.tracked ? 'Track' : 'No'}
                             </Badge>
                           </div>
                         ) : '—'}
                       </td>
                       <td className="px-4 py-3">
                         {v ? (
-                          <span className="text-xs font-medium text-indigo-600">${parseFloat(v.inventory?.[0]?.cost || 0).toFixed(2)}</span>
+                          <span className="text-xs font-medium text-indigo-600">${parseFloat(v.inventory_item?.[0]?.cost || 0).toFixed(2)}</span>
                         ) : '—'}
                       </td>
                       <td className="px-4 py-3">
                         {v ? (
                           <div className="flex items-center gap-2">
-                            {v.inventory?.[0]?.country_code_of_origin ? (
-                              <span className="text-[9px] bg-gray-100 px-1.5 py-0.5 rounded font-bold text-gray-600 uppercase whitespace-nowrap">{v.inventory[0].country_code_of_origin}</span>
+                            {v.inventory_item?.[0]?.country_code_of_origin ? (
+                              <span className="text-[9px] bg-gray-100 px-1.5 py-0.5 rounded font-bold text-gray-600 uppercase whitespace-nowrap">{v.inventory_item[0].country_code_of_origin}</span>
                             ) : <span className="text-[10px] text-gray-300">—</span>}
-                            {v.inventory?.[0]?.harmonized_system_code ? (
-                              <span className="text-[9px] font-mono text-gray-500 whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{v.inventory[0].harmonized_system_code}</span>
+                            {v.inventory_item?.[0]?.harmonized_system_code ? (
+                              <span className="text-[9px] font-mono text-gray-500 whitespace-nowrap bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{v.inventory_item[0].harmonized_system_code}</span>
                             ) : null}
                           </div>
                         ) : '—'}
