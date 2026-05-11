@@ -42,7 +42,7 @@ export default function AdjustmentsPage() {
   const [createAdjustment, { isLoading: isCreating }] = useCreateAdjustmentMutation();
 
   const inventoryItems = productData?.data?.flatMap(p => 
-    p.variants?.map(v => v.inventory).filter((item): item is NonNullable<typeof item> => item !== null)
+    p.variants?.map(v => v.inventory_item).filter((item): item is NonNullable<typeof item> => item !== null)
   ) || [];
 
   const handleCreateAdjustment = async (e: React.FormEvent<HTMLFormElement>) => {

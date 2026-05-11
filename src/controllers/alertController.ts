@@ -24,7 +24,7 @@ export class AlertController {
         .select(`
           *,
           location:locations(name),
-          item:inventory_items(
+          inventory_item:inventory_items(
             sku,
             variant:product_variants(title)
           )

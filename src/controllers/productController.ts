@@ -16,7 +16,7 @@ export class ProductController {
           options:product_options(*),
           variants:product_variants(
             *,
-            inventory:inventory_items(*)
+            inventory_item:inventory_items(*)
           )
         `, { count: 'exact' });
 
@@ -61,7 +61,7 @@ export class ProductController {
           options:product_options(*),
           variants:product_variants(
             *,
-            inventory:inventory_items(*),
+            inventory_item:inventory_items(*),
             option_values:product_option_values(
               *,
               option:product_options(name)
